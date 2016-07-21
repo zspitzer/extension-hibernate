@@ -3,6 +3,7 @@ package org.lucee.extension.orm.hibernate.jdbc;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
@@ -39,6 +40,13 @@ public class ConnectionProviderImpl implements ConnectionProvider {
 	}
 
 	public void configure(Properties props) throws HibernateException {
+		// MUST
+		Iterator<Object> it = props.keySet().iterator();
+		while(it.hasNext()) {
+			System.out.println(it.next());
+		}
+		
+		
 		String id=props.getProperty("lucee.datasource.id");
 		if(!Util.isEmpty(id)) ds=dataSources.get(id);
 		dsn=props.getProperty("lucee.datasource.name");

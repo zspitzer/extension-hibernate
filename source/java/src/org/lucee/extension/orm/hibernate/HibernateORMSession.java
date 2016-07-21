@@ -107,8 +107,20 @@ public class HibernateORMSession implements ORMSession {
 	}
 	
 	void createSession(SessionFactory factory, DatasourceConnection dc) { 
-		StatelessSession session;
-		_sessions.put(CommonUtil.toKey(dc.getDatasource().getName()), session=factory.openStatelessSession(dc.getConnection()));//ssion(dc.getConnection()));
+		// MUST
+		/*
+	StatelessSession session;
+		_sessions.put(
+				CommonUtil.toKey(dc.getDatasource().getName()), 
+				session=factory.openStatelessSession(dc.getConnection())
+		);
+		
+		*/
+		Session session;
+		_sessions.put(
+				CommonUtil.toKey(dc.getDatasource().getName()), 
+				session=factory.openSession()
+		);
 		session.setFlushMode(FlushMode.MANUAL);
 	}
 

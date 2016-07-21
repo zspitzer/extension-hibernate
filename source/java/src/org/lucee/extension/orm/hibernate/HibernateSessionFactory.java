@@ -144,11 +144,11 @@ public class HibernateSessionFactory {
 		// make sure the connection provider has the DBUtil instance, this is a little bit of a mess but the only way to make our pool availbale without importing the railo core 
 		// providing reference to connection pool here.
 		
-		
+		// MUST
 		configuration
         // Database connection settings
 		.setProperty("hibernate.connection.datasource_name", ds.getName())// uded by custom connctionprovider
-		.setProperty("hibernate.connection.datasource_id", ds.id())// uded by custom connctionprovider
+		.setProperty("hibernate.connection.datasource_id", ds.id())// uded by custom connctionprovider datasource.id
 		
     	.setProperty("hibernate.connection.driver_class", ds.getClassDefinition().getClassName())
         

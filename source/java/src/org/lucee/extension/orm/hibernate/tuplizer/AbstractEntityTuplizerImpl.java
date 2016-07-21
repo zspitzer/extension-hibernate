@@ -17,11 +17,8 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
-import org.hibernate.metamodel.binding.AttributeBinding;
-import org.hibernate.metamodel.binding.EntityBinding;
-import org.hibernate.property.Getter;
-import org.hibernate.property.PropertyAccessor;
-import org.hibernate.property.Setter;
+import org.hibernate.property.access.spi.Getter;
+import org.hibernate.property.access.spi.Setter;
 import org.hibernate.proxy.ProxyFactory;
 import org.hibernate.tuple.Instantiator;
 import org.hibernate.tuple.entity.AbstractEntityTuplizer;
@@ -32,6 +29,8 @@ import org.lucee.extension.orm.hibernate.HibernateCaster;
 import org.lucee.extension.orm.hibernate.HibernateUtil;
 import org.lucee.extension.orm.hibernate.tuplizer.accessors.CFCAccessor;
 import org.lucee.extension.orm.hibernate.tuplizer.proxy.CFCHibernateProxyFactory;
+
+import com.sun.xml.internal.ws.spi.db.PropertyAccessor;
 
 
 public class AbstractEntityTuplizerImpl extends AbstractEntityTuplizer {

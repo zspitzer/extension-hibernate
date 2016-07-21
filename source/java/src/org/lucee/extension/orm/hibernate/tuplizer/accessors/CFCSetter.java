@@ -9,7 +9,7 @@ import lucee.runtime.type.Collection.Key;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.property.Setter;
+import org.hibernate.property.access.spi.Setter;
 import org.lucee.extension.orm.hibernate.CommonUtil;
 import org.lucee.extension.orm.hibernate.HibernatePageException;
 
