@@ -32,6 +32,7 @@ import lucee.loader.util.Util;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.PageContext;
+import lucee.runtime.component.Property;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.SQLItem;
@@ -107,20 +108,10 @@ public class HibernateORMSession implements ORMSession {
 	}
 	
 	void createSession(SessionFactory factory, DatasourceConnection dc) { 
-		// MUST
-		/*
-	StatelessSession session;
-		_sessions.put(
-				CommonUtil.toKey(dc.getDatasource().getName()), 
-				session=factory.openStatelessSession(dc.getConnection())
-		);
-		
-		*/
+		//MUST StatelessSession session;
+		//_sessions.put(CommonUtil.toKey(dc.getDatasource().getName()), session=factory.openStatelessSession(dc.getConnection()));//ssion(dc.getConnection()));
 		Session session;
-		_sessions.put(
-				CommonUtil.toKey(dc.getDatasource().getName()), 
-				session=factory.openSession()
-		);
+		_sessions.put(CommonUtil.toKey(dc.getDatasource().getName()), session=factory.openSession());//ssion(dc.getConnection()));
 		session.setFlushMode(FlushMode.MANUAL);
 	}
 
@@ -223,6 +214,26 @@ public class HibernateORMSession implements ORMSession {
 		Component cfc = HibernateCaster.toComponent(obj);
 		String name = HibernateCaster.getEntityName(cfc);
 		Key dsn = CommonUtil.toKey(CommonUtil.getDataSourceName(pc, cfc));
+		/* just a test
+		Property[] props = cfc.getProperties(true,true, false,true);
+		Cast caster = CFMLEngineFactory.getInstance().getCastUtil();
+		ComponentScope cs = cfc.getComponentScope();
+		String type;
+		Object val;
+		for(Property p:props) {
+			val=cs.get(p.getName(),null);
+			if(val==null) continue;
+			Object o = p.getMetaData();
+			if(!(o instanceof Struct)) continue;
+			Struct meta = (Struct) o;
+			
+			type=caster.toString(meta.get("ormtype",null),null);
+			if(Util.isEmpty(type)) type=caster.toString(meta.get("type",null));
+			if(!Util.isEmpty(type)) {
+				val=HibernateCaster.toHibernateValue(pc,val,type);
+				cs.setEL(p.getName(), val);
+			}
+		}*/
 		
 		try {
 			Session session = getSession(dsn);
