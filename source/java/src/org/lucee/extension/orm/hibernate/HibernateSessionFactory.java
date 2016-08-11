@@ -144,19 +144,19 @@ public class HibernateSessionFactory {
 		// make sure the connection provider has the DBUtil instance, this is a little bit of a mess but the only way to make our pool availbale without importing the railo core 
 		// providing reference to connection pool here.
 		
-		// MUST
+		
 		configuration
         // Database connection settings
-		.setProperty("hibernate.connection.datasource_name", ds.getName())// uded by custom connctionprovider
-		.setProperty("hibernate.connection.datasource_id", ds.id())// uded by custom connctionprovider datasource.id
+		.setProperty("lucee.datasource.name", ds.getName())// uded by custom connctionprovider
+		.setProperty("lucee.datasource.id", ds.id())// uded by custom connctionprovider
 		
     	.setProperty("hibernate.connection.driver_class", ds.getClassDefinition().getClassName())
         
     	.setProperty("hibernate.connection.url", ds.getDsnTranslated());
 		if(!Util.isEmpty(ds.getUsername())) {
-			configuration.setProperty(Environment.USER, ds.getUsername());
+			configuration.setProperty("lucee.datasource.user", ds.getUsername());
 			if(!Util.isEmpty(ds.getPassword()))
-				configuration.setProperty(Environment.PASS, ds.getPassword());
+				configuration.setProperty("lucee.datasource.password", ds.getPassword());
 		}
 		
 		
@@ -169,7 +169,8 @@ public class HibernateSessionFactory {
     	
     	// use Lucee connection pool to avoid dynamic-import:*
     	.setProperty(Environment.CONNECTION_PROVIDER, 
-    			UserSuppliedConnectionProviderImpl.class.getName()//ConnectionProviderProxy.class.getName()	
+    			//UserSuppliedConnectionProviderImpl.class.getName()
+    			ConnectionProviderImpl.class.getName()	
     			)
     	
     	// SQL dialect
@@ -210,12 +211,6 @@ public class HibernateSessionFactory {
 			t.printStackTrace();
 		}
 		
-		/*
-		<!ELEMENT tuplizer EMPTY> 
-	    <!ATTLIST tuplizer entity-mode (pojo|dom4j|dynamic-map) #IMPLIED>   <!-- entity mode for which tuplizer is in effect --> 
-	    <!ATTLIST tuplizer class CDATA #REQUIRED>                           <!-- the tuplizer class to use --> 
-		*/
-        
 		schemaExport(log,configuration,dc,data);
 		
 		return configuration;

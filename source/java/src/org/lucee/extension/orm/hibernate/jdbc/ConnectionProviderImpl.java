@@ -10,6 +10,8 @@ import java.util.Properties;
 import org.hibernate.HibernateException;
 import org.hibernate.cfg.Environment;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
+import org.hibernate.service.spi.Configurable;
+import org.hibernate.service.spi.Stoppable;
 
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -18,12 +20,13 @@ import lucee.runtime.PageContext;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.util.Cast;
 import lucee.runtime.util.DBUtil;
 
 import org.hibernate.HibernateException;
 import org.lucee.extension.orm.hibernate.CommonUtil;
 
-public class ConnectionProviderImpl implements ConnectionProvider {
+public class ConnectionProviderImpl implements ConnectionProvider, Configurable {
 	
 	private final DBUtil dbu;
 	private CFMLEngine engine;
@@ -39,26 +42,21 @@ public class ConnectionProviderImpl implements ConnectionProvider {
 		dbu=engine.getDBUtil();
 	}
 
-	public void configure(Properties props) throws HibernateException {
-		// MUST
-		Iterator<Object> it = props.keySet().iterator();
-		while(it.hasNext()) {
-			System.out.println(it.next());
-		}
+	@Override
+	public void configure( Map map)  {
 		
-		
-		String id=props.getProperty("lucee.datasource.id");
-		if(!Util.isEmpty(id)) ds=dataSources.get(id);
-		dsn=props.getProperty("lucee.datasource.name");
-		user=props.getProperty("lucee.datasource.user");
-		pass=props.getProperty("lucee.datasource.password");
+			Cast cast = engine.getCastUtil();
+			String id=cast.toString(map.get("lucee.datasource.id"),null);
+			if(!Util.isEmpty(id)) ds=dataSources.get(id);
+			dsn=cast.toString(map.get("lucee.datasource.name"),null);
+			user=cast.toString(map.get("lucee.datasource.user"),null);
+			pass=cast.toString(map.get("lucee.datasource.password"),null);
 	}
 
 	@Override
 	public Connection getConnection() throws SQLException {
 		PageContext pc = engine.getThreadPageContext();
 		DataSource datasource = ds!=null?ds:CommonUtil.getDataSource(pc, dsn, null);
-		
 		try {
 			if(datasource!=null) return dbu.getDatasourceConnection(pc, datasource, user, pass);
 			return dbu.getDatasourceConnection(pc, dsn, user, pass);
