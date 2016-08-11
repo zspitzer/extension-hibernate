@@ -224,6 +224,7 @@ public class HibernateSessionFactory {
 		}
 		else if(ORMConfiguration.DBCREATE_DROP_CREATE==ormConf.getDbCreate()) {
 			SchemaExport export = new SchemaExport(configuration);
+			
 			export.setHaltOnError(true);
 	            
 			export.execute(false,true,false,false);

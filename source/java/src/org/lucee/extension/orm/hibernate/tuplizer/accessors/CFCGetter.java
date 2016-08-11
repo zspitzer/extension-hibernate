@@ -15,8 +15,9 @@ import lucee.runtime.type.Collection.Key;
 import org.hibernate.HibernateException;
 import org.hibernate.SessionFactory;
 import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.metadata.ClassMetadata;
-import org.hibernate.property.Getter;
+import org.hibernate.property.access.spi.Getter;
 import org.hibernate.type.Type;
 import org.lucee.extension.orm.hibernate.CommonUtil;
 import org.lucee.extension.orm.hibernate.HibernateCaster;
@@ -77,9 +78,13 @@ public class CFCGetter implements Getter {
 		return null;
 	}
 	
+	// was used in previous versions, we keep it just in case
+	public Object getForInsert(Object trg, Map map, SessionImplementor si)throws HibernateException {
+		return get(trg);// MUST better solution? this is from MapGetter
+	}
 
 	@Override
-	public Object getForInsert(Object trg, Map arg1, SessionImplementor si)throws HibernateException {
+	public Object getForInsert(Object trg, Map map,SharedSessionContractImplementor ssci) {
 		return get(trg);// MUST better solution? this is from MapGetter
 	}
 

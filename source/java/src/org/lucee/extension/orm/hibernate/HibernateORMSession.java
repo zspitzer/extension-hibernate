@@ -24,6 +24,7 @@ import org.hibernate.engine.query.spi.ParameterMetadata;
 import org.hibernate.engine.query.spi.QueryPlanCache;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.query.internal.ParameterMetadataImpl;
 import org.hibernate.type.Type;
 
 import lucee.commons.lang.types.RefBoolean;
@@ -414,7 +415,7 @@ public class HibernateORMSession implements ORMSession {
 		if(params!=null){
 			QueryPlanCache cache=data.getQueryPlanCache(dsn);
 			HQLQueryPlan plan = cache.getHQLQueryPlan(hql, false, java.util.Collections.EMPTY_MAP);
-			ParameterMetadata meta = plan.getParameterMetadata();
+			ParameterMetadataImpl meta = plan.getParameterMetadata();
 			Type type;
 			Object obj;
 			
