@@ -14,20 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.hibernate.HibernateException;
-import org.hibernate.MappingException;
-import org.hibernate.cache.RegionFactory;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.cfg.Environment;
-import org.hibernate.engine.jdbc.connections.internal.UserSuppliedConnectionProviderImpl;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.hibernate.tool.hbm2ddl.SchemaUpdate;
-import org.lucee.extension.orm.hibernate.jdbc.ConnectionProviderImpl;
-import org.lucee.extension.orm.hibernate.jdbc.ConnectionProviderProxy;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.BundleReference;
-import org.w3c.dom.Document;
-
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceFilter;
@@ -106,7 +92,7 @@ public class HibernateSessionFactory {
 		// Cache Provider
 		String cacheProvider = ormConf.getCacheProvider();
 		Class<? extends RegionFactory> regionFactory=null;
-		
+
 		if(Util.isEmpty(cacheProvider) || "EHCache".equalsIgnoreCase(cacheProvider)) {
 			regionFactory=net.sf.ehcache.hibernate.EhCacheRegionFactory.class;
 			// regionFactory=(Class<? extends RegionFactory>) CFMLEngineFactory.getInstance().getClassUtil().loadClass("net.sf.ehcache.hibernate.EhCacheRegionFactory");
@@ -116,7 +102,7 @@ public class HibernateSessionFactory {
 		else if("HashTable".equalsIgnoreCase(cacheProvider)) 	cacheProvider="org.hibernate.cache.HashtableCacheProvider";
 		else if("SwarmCache".equalsIgnoreCase(cacheProvider)) 	cacheProvider="org.hibernate.cache.SwarmCacheProvider";
 		else if("OSCache".equalsIgnoreCase(cacheProvider)) 		cacheProvider="org.hibernate.cache.OSCacheProvider";
-	
+
 		Resource cacheConfig = ormConf.getCacheConfig();
 		Configuration configuration = new Configuration();
 		
@@ -128,6 +114,7 @@ public class HibernateSessionFactory {
 				configuration.configure(doc);
 			} 
 			catch (Throwable t) {
+				if(t instanceof ThreadDeath) throw (ThreadDeath)t;
 				log.log(Log.LEVEL_ERROR, "hibernate", t);
 				
 			}
@@ -207,9 +194,7 @@ public class HibernateSessionFactory {
 	    	//hibernate.cache.provider_class=org.hibernate.cache.EhCacheProvider
 		}
 		}
-		catch(Throwable t){
-			t.printStackTrace();
-		}
+		catch(Throwable t){if(t instanceof ThreadDeath) throw (ThreadDeath)t;}
 		
 		schemaExport(log,configuration,dc,data);
 		
@@ -320,7 +305,7 @@ public class HibernateSessionFactory {
 			try {
 				Component base = data.getEntityByCFCName(ext, false);
 				ext=HibernateCaster.getEntityName(base);
-			} catch (Throwable t) {}
+			} catch (Throwable t) {if(t instanceof ThreadDeath) throw (ThreadDeath)t;}
 			
 			
 			ext=HibernateUtil.id(CommonUtil.last(ext, ".").trim());

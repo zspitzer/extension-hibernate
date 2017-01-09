@@ -244,6 +244,7 @@ public class HibernateORMSession implements ORMSession {
 				session.saveOrUpdate(name, cfc);
 		}
 		catch(Throwable t){
+			if(t instanceof ThreadDeath) throw (ThreadDeath)t;
 			throw ExceptionUtil.createException(this,null,t);
 		}
 	}
@@ -363,7 +364,7 @@ public class HibernateORMSession implements ORMSession {
 				try{
 					return __executeQuery(pc, s, dsn, hql, CommonUtil.toArray((Argument)params), unique, queryOptions);
 				}
-				catch(Throwable t){t.printStackTrace();}
+				catch(Throwable t){if(t instanceof ThreadDeath) throw (ThreadDeath)t;}
 			}
 			throw qe;
 		}
