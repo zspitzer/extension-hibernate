@@ -95,6 +95,7 @@ public class HibernateSessionFactory {
 
 		if(Util.isEmpty(cacheProvider) || "EHCache".equalsIgnoreCase(cacheProvider)) {
 			regionFactory=net.sf.ehcache.hibernate.EhCacheRegionFactory.class;
+			// regionFactory=net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory.class;
 			// regionFactory=(Class<? extends RegionFactory>) CFMLEngineFactory.getInstance().getClassUtil().loadClass("net.sf.ehcache.hibernate.EhCacheRegionFactory");
 			cacheProvider=regionFactory.getName();
 		}
