@@ -36,7 +36,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.util.TemplateUtil;
 
 import org.hibernate.MappingException;
-import org.hibernate.cache.RegionFactory;
+import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
@@ -92,11 +92,11 @@ public class HibernateSessionFactory {
 		// Cache Provider
 		String cacheProvider = ormConf.getCacheProvider();
 		Class<? extends RegionFactory> regionFactory=null;
-
+		
 		if(Util.isEmpty(cacheProvider) || "EHCache".equalsIgnoreCase(cacheProvider)) {
-			regionFactory=net.sf.ehcache.hibernate.EhCacheRegionFactory.class;
+			// regionFactory=net.sf.ehcache.hibernate.EhCacheRegionFactory.class;
 			// regionFactory=net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory.class;
-			// regionFactory=(Class<? extends RegionFactory>) CFMLEngineFactory.getInstance().getClassUtil().loadClass("net.sf.ehcache.hibernate.EhCacheRegionFactory");
+			regionFactory=org.hibernate.cache.ehcache.EhCacheRegionFactory.class;
 			cacheProvider=regionFactory.getName();
 		}
 		else if("JBossCache".equalsIgnoreCase(cacheProvider)) 	cacheProvider="org.hibernate.cache.TreeCacheProvider";
