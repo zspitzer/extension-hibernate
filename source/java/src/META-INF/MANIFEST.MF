@@ -20,9 +20,4 @@ Require-Bundle: antlr;bundle-version=2.7.7,
  org.lucee.xml;bundle-version=1.0.0.0,
  org.lucee.cglib;bundle-version=2.2.2
 Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.12
-Require-Bundle-old: 
- org.apache.commons.collections;bundle-version=3.2.1,
- org.lucee.xalan;bundle-version=2.7.2,
- org.lucee.xml.xerces;bundle-version=2.11.0,
- org.lucee.xml.apis;bundle-version=1.4.1,
 Bundle-ManifestVersion: 2
