@@ -11,13 +11,13 @@ public class PreDeleteEventListenerImpl extends EventListener implements PreDele
 	private static final long serialVersionUID = 1730085093470940646L;
 
 	public PreDeleteEventListenerImpl(Component component) {
-	    super(component, CommonUtil.PRE_DELETE, false);
+		super(component, CommonUtil.PRE_DELETE, false);
 	}
 
-    @Override
+	@Override
 	public boolean onPreDelete(PreDeleteEvent event) {
-    	invoke(CommonUtil.PRE_DELETE, event.getEntity());
+		invoke(CommonUtil.PRE_DELETE, event.getEntity());
 		return false;
-    }
+	}
 
 }

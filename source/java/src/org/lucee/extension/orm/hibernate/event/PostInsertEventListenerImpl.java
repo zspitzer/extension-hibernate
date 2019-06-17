@@ -12,17 +12,17 @@ public class PostInsertEventListenerImpl extends EventListener implements PostIn
 	private static final long serialVersionUID = -1300488254940330390L;
 
 	public PostInsertEventListenerImpl(Component component) {
-	    super(component, CommonUtil.POST_INSERT, false);
+		super(component, CommonUtil.POST_INSERT, false);
 	}
 
 	@Override
 	public void onPostInsert(PostInsertEvent event) {
 		invoke(CommonUtil.POST_INSERT, event.getEntity());
-    }
+	}
 
 	@Override
 	public boolean requiresPostCommitHanding(EntityPersister arg0) {
-		// TODO 
+		// TODO
 		return false;
 	}
 

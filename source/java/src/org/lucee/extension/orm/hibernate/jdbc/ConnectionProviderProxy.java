@@ -9,7 +9,6 @@ public class ConnectionProviderProxy implements ConnectionProvider {
 
 	public static ConnectionProvider provider;
 
-
 	@Override
 	public void closeConnection(Connection arg0) throws SQLException {
 		provider.closeConnection(arg0);

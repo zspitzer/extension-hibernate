@@ -14,23 +14,25 @@ import org.lucee.extension.orm.hibernate.CommonUtil;
 import org.lucee.extension.orm.hibernate.HibernatePageException;
 
 public final class CFCSetter implements Setter {
-	
+
 	private Key key;
 
 	/**
 	 * Constructor of the class
+	 * 
 	 * @param key
 	 */
-	public CFCSetter(String key){
+	public CFCSetter(String key) {
 		this(CommonUtil.createKey(key));
 	}
-	
+
 	/**
 	 * Constructor of the class
+	 * 
 	 * @param key
 	 */
-	public CFCSetter(Collection.Key key){
-		this.key=key;
+	public CFCSetter(Collection.Key key) {
+		this.key = key;
 	}
 
 	@Override
@@ -50,8 +52,8 @@ public final class CFCSetter implements Setter {
 	public void set(Object trg, Object value, SessionFactoryImplementor factory) throws HibernateException {
 		try {
 			Component cfc = CommonUtil.toComponent(trg);
-			cfc.getComponentScope().set(key,value);
-		} 
+			cfc.getComponentScope().set(key, value);
+		}
 		catch (PageException pe) {
 			throw new HibernatePageException(pe);
 		}

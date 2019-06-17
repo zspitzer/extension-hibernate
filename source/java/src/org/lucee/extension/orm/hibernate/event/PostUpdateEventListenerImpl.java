@@ -12,13 +12,13 @@ public class PostUpdateEventListenerImpl extends EventListener implements PostUp
 	private static final long serialVersionUID = -6636253331286381298L;
 
 	public PostUpdateEventListenerImpl(Component component) {
-	    super(component, CommonUtil.POST_UPDATE, false);
+		super(component, CommonUtil.POST_UPDATE, false);
 	}
 
 	@Override
 	public void onPostUpdate(PostUpdateEvent event) {
-    	invoke(CommonUtil.POST_UPDATE, event.getEntity());
-    }
+		invoke(CommonUtil.POST_UPDATE, event.getEntity());
+	}
 
 	@Override
 	public boolean requiresPostCommitHanding(EntityPersister arg0) {

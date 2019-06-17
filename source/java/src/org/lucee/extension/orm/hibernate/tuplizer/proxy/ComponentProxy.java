@@ -29,21 +29,22 @@ public abstract class ComponentProxy implements Component {
 
 	private static final long serialVersionUID = -8709126025976358501L;
 
-	public abstract Component getComponent(); 
-	
+	public abstract Component getComponent();
+
 	@Override
 	public Class getJavaAccessClass(RefBoolean isNew) throws PageException {
 		return getComponent().getJavaAccessClass(isNew);
 	}
 
 	@Override
-	public Class getJavaAccessClass(PageContext pc,RefBoolean isNew,boolean writeLog, boolean takeTop, boolean create, boolean supressWSbeforeArg) throws PageException{
-   		return getComponent().getJavaAccessClass(pc, isNew, writeLog, takeTop, create, supressWSbeforeArg);
+	public Class getJavaAccessClass(PageContext pc, RefBoolean isNew, boolean writeLog, boolean takeTop, boolean create, boolean supressWSbeforeArg) throws PageException {
+		return getComponent().getJavaAccessClass(pc, isNew, writeLog, takeTop, create, supressWSbeforeArg);
 	}
-	
+
 	@Override
-	public Class getJavaAccessClass(PageContext pc,RefBoolean isNew,boolean writeLog, boolean takeTop, boolean create, boolean supressWSbeforeArg, boolean output, boolean returnValue) throws PageException{
-   		return getComponent().getJavaAccessClass(pc, isNew, writeLog, takeTop, create, supressWSbeforeArg,output,returnValue);
+	public Class getJavaAccessClass(PageContext pc, RefBoolean isNew, boolean writeLog, boolean takeTop, boolean create, boolean supressWSbeforeArg, boolean output,
+			boolean returnValue) throws PageException {
+		return getComponent().getJavaAccessClass(pc, isNew, writeLog, takeTop, create, supressWSbeforeArg, output, returnValue);
 	}
 
 	@Override
@@ -102,14 +103,12 @@ public abstract class ComponentProxy implements Component {
 	}
 
 	@Override
-	public Object call(PageContext pc, String key, Object[] args)
-			throws PageException {
+	public Object call(PageContext pc, String key, Object[] args) throws PageException {
 		return getComponent().call(pc, key, args);
 	}
 
 	@Override
-	public Object callWithNamedValues(PageContext pc, String key, Struct args)
-			throws PageException {
+	public Object callWithNamedValues(PageContext pc, String key, Struct args) throws PageException {
 		return getComponent().callWithNamedValues(pc, key, args);
 	}
 
@@ -135,7 +134,7 @@ public abstract class ComponentProxy implements Component {
 
 	@Override
 	public Object remove(Key key, Object defaultValue) {
-		return getComponent().remove(key,defaultValue);
+		return getComponent().remove(key, defaultValue);
 	}
 
 	@Override
@@ -183,7 +182,6 @@ public abstract class ComponentProxy implements Component {
 		return getComponent().setEL(key, value);
 	}
 
-
 	@Override
 	public boolean containsKey(String key) {
 		return getComponent().containsKey(key);
@@ -195,8 +193,7 @@ public abstract class ComponentProxy implements Component {
 	}
 
 	@Override
-	public DumpData toDumpData(PageContext pageContext, int maxlevel,
-			DumpProperties properties) {
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
 		return getComponent().toDumpData(pageContext, maxlevel, properties);
 	}
 
@@ -204,11 +201,11 @@ public abstract class ComponentProxy implements Component {
 	public Iterator<Collection.Key> keyIterator() {
 		return getComponent().keyIterator();
 	}
-    
-    @Override
+
+	@Override
 	public Iterator<String> keysAsStringIterator() {
-    	return getComponent().keysAsStringIterator();
-    }
+		return getComponent().keysAsStringIterator();
+	}
 
 	@Override
 	public Iterator<Entry<Key, Object>> entryIterator() {
@@ -341,8 +338,7 @@ public abstract class ComponentProxy implements Component {
 	}
 
 	@Override
-	public Object set(PageContext pc, Key propertyName, Object value)
-			throws PageException {
+	public Object set(PageContext pc, Key propertyName, Object value) throws PageException {
 		return getComponent().set(pc, propertyName, value);
 	}
 
@@ -352,17 +348,15 @@ public abstract class ComponentProxy implements Component {
 	}
 
 	@Override
-	public Object call(PageContext pc, Key methodName, Object[] arguments)
-			throws PageException {
+	public Object call(PageContext pc, Key methodName, Object[] arguments) throws PageException {
 		return getComponent().call(pc, methodName, arguments);
 	}
 
 	@Override
-	public Object callWithNamedValues(PageContext pc, Key methodName,
-			Struct args) throws PageException {
+	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
 		return getComponent().callWithNamedValues(pc, methodName, args);
 	}
-	
+
 	@Override
 	public Property[] getProperties(boolean onlyPeristent) {
 		return getComponent().getProperties(onlyPeristent);
@@ -402,30 +396,26 @@ public abstract class ComponentProxy implements Component {
 	public boolean equalTo(String type) {
 		return getComponent().equalTo(type);
 	}
-	
+
 	@Override
-	public Object clone(){
+	public Object clone() {
 		return duplicate(true);
 	}
-	
-    
-	@Override
-    public void registerUDF(Collection.Key key, UDF udf) throws PageException{
-    	getComponent().registerUDF(key, udf);
-    }
-    
-    
-	@Override
-    public void registerUDF(Collection.Key key, UDFProperties props) throws PageException{
-    	getComponent().registerUDF(key, props);
-    }
 
-	
-	
+	@Override
+	public void registerUDF(Collection.Key key, UDF udf) throws PageException {
+		getComponent().registerUDF(key, udf);
+	}
+
+	@Override
+	public void registerUDF(Collection.Key key, UDFProperties props) throws PageException {
+		getComponent().registerUDF(key, props);
+	}
+
 	@Override
 	public java.util.Iterator<String> getIterator() {
-    	return keysAsStringIterator();
-    }
+		return keysAsStringIterator();
+	}
 
 	@Override
 	public String getWSDLFile() {
@@ -436,11 +426,12 @@ public abstract class ComponentProxy implements Component {
 	public Collection duplicate(boolean deepCopy) {
 		return getComponent().duplicate(deepCopy);
 	}
+
 	@Override
 	public Property[] getProperties(boolean onlyPeristent, boolean includeBaseProperties, boolean overrideProperties, boolean inheritedMappedSuperClassOnly) {
 		return getComponent().getProperties(onlyPeristent, includeBaseProperties, overrideProperties, inheritedMappedSuperClassOnly);
 	}
-	
+
 	@Override
 	public boolean isPersistent() {
 		return getComponent().isPersistent();
@@ -459,7 +450,8 @@ public abstract class ComponentProxy implements Component {
 	public Object getMetaStructItem(Key name) {
 		return getComponent().getMetaStructItem(name);
 	}
-	public static Object getMetaStructItem(Component c,Key name) {
+
+	public static Object getMetaStructItem(Component c, Key name) {
 		return c.getMetaStructItem(name);
 	}
 
@@ -512,7 +504,7 @@ public abstract class ComponentProxy implements Component {
 	public Iterator<Key> keyIterator(int access) {
 		return getComponent().keyIterator(access);
 	}
-	
+
 	@Override
 	public Iterator<String> keysAsStringIterator(int access) {
 		return getComponent().keysAsStringIterator(access);
@@ -532,13 +524,13 @@ public abstract class ComponentProxy implements Component {
 	public Member getMember(int access, Key key, boolean dataMember, boolean superAccess) {
 		return getComponent().getMember(access, key, dataMember, superAccess);
 	}
-	
+
 	@Override
 	public void setEntity(boolean entity) {
 		getComponent().setEntity(entity);
 	}
-	
-	public static void setEntity(Component c,boolean entity) {
+
+	public static void setEntity(Component c, boolean entity) {
 		c.setEntity(entity);
 	}
 
@@ -556,14 +548,14 @@ public abstract class ComponentProxy implements Component {
 	public Scope staticScope() {
 		return getComponent().staticScope();
 	}
-	
+
 	@Override
-	public Variables beforeStaticConstructor(PageContext pc){
+	public Variables beforeStaticConstructor(PageContext pc) {
 		return getComponent().beforeStaticConstructor(pc);
 	}
 
 	@Override
-	public void afterStaticConstructor(PageContext pc, Variables var){
+	public void afterStaticConstructor(PageContext pc, Variables var) {
 		getComponent().afterStaticConstructor(pc, var);
 	}
 

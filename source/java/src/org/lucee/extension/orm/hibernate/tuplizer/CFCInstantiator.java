@@ -19,26 +19,27 @@ import org.lucee.extension.orm.hibernate.HibernatePageException;
 import org.lucee.extension.orm.hibernate.HibernateUtil;
 
 public class CFCInstantiator implements Instantiator {
-	
+
 	private String entityName;
 	private Set<String> isInstanceEntityNames = new HashSet<String>();
-	
+
 	public CFCInstantiator() {
 		this.entityName = null;
 	}
 
 	/**
 	 * Constructor of the class
+	 * 
 	 * @param mappingInfo
 	 */
 	public CFCInstantiator(PersistentClass mappingInfo) {
 		this.entityName = mappingInfo.getEntityName();
-		isInstanceEntityNames.add( entityName );
-		if ( mappingInfo.hasSubclasses() ) {
+		isInstanceEntityNames.add(entityName);
+		if (mappingInfo.hasSubclasses()) {
 			Iterator<PersistentClass> itr = mappingInfo.getSubclassClosureIterator();
-			while ( itr.hasNext() ) {
+			while (itr.hasNext()) {
 				final PersistentClass subclassInfo = itr.next();
-				isInstanceEntityNames.add( subclassInfo.getEntityName() );
+				isInstanceEntityNames.add(subclassInfo.getEntityName());
 			}
 		}
 	}
@@ -52,12 +53,12 @@ public class CFCInstantiator implements Instantiator {
 	public final Object instantiate() {
 		try {
 			PageContext pc = CommonUtil.pc();
-			HibernateORMSession session=HibernateUtil.getORMSession(pc,true);
-			HibernateORMEngine engine=(HibernateORMEngine) session.getEngine();
+			HibernateORMSession session = HibernateUtil.getORMSession(pc, true);
+			HibernateORMEngine engine = (HibernateORMEngine) session.getEngine();
 			Component c = engine.create(pc, session, entityName, true);
 			c.setEntity(true);
-			return c;//new CFCProxy(c);
-		} 
+			return c;// new CFCProxy(c);
+		}
 		catch (PageException pe) {
 			throw new HibernatePageException(pe);
 		}
@@ -65,8 +66,8 @@ public class CFCInstantiator implements Instantiator {
 
 	@Override
 	public final boolean isInstance(Object object) {
-		Component cfc = CommonUtil.toComponent(object,null);
-		if(cfc==null) return false;
-		return isInstanceEntityNames.contains( HibernateCaster.getEntityName(cfc));
+		Component cfc = CommonUtil.toComponent(object, null);
+		if (cfc == null) return false;
+		return isInstanceEntityNames.contains(HibernateCaster.getEntityName(cfc));
 	}
 }

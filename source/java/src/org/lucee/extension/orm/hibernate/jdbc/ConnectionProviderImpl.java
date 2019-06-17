@@ -26,44 +26,43 @@ import org.hibernate.HibernateException;
 import org.lucee.extension.orm.hibernate.CommonUtil;
 
 public class ConnectionProviderImpl implements ConnectionProvider, Configurable {
-	
+
 	private final DBUtil dbu;
 	private CFMLEngine engine;
 	private String dsn;
 	private String user;
 	private String pass;
 	private DataSource ds;
-	
-	public static Map<String,DataSource> dataSources=new HashMap<String,DataSource>();
 
-	public ConnectionProviderImpl(){
+	public static Map<String, DataSource> dataSources = new HashMap<String, DataSource>();
+
+	public ConnectionProviderImpl() {
 		engine = CFMLEngineFactory.getInstance();
-		dbu=engine.getDBUtil();
+		dbu = engine.getDBUtil();
 	}
 
 	@Override
-	public void configure( Map map)  {
-		
-			Cast cast = engine.getCastUtil();
-			String id=cast.toString(map.get("lucee.datasource.id"),null);
-			if(!Util.isEmpty(id)) ds=dataSources.get(id);
-			dsn=cast.toString(map.get("lucee.datasource.name"),null);
-			user=cast.toString(map.get("lucee.datasource.user"),null);
-			pass=cast.toString(map.get("lucee.datasource.password"),null);
-	
-			/*System.out.println("id:"+id);
-			System.out.println("ds:"+ds);
-			System.out.println("dsn:"+id);
-			System.out.println("user:"+id);
-			System.out.println("pass:"+id);*/
+	public void configure(Map map) {
+
+		Cast cast = engine.getCastUtil();
+		String id = cast.toString(map.get("lucee.datasource.id"), null);
+		if (!Util.isEmpty(id)) ds = dataSources.get(id);
+		dsn = cast.toString(map.get("lucee.datasource.name"), null);
+		user = cast.toString(map.get("lucee.datasource.user"), null);
+		pass = cast.toString(map.get("lucee.datasource.password"), null);
+
+		/*
+		 * System.out.println("id:"+id); System.out.println("ds:"+ds); System.out.println("dsn:"+id);
+		 * System.out.println("user:"+id); System.out.println("pass:"+id);
+		 */
 	}
 
 	@Override
 	public Connection getConnection() throws SQLException {
 		PageContext pc = engine.getThreadPageContext();
-		DataSource datasource = ds!=null?ds:CommonUtil.getDataSource(pc, dsn, null);
+		DataSource datasource = ds != null ? ds : CommonUtil.getDataSource(pc, dsn, null);
 		try {
-			if(datasource!=null) return dbu.getDatasourceConnection(pc, datasource, user, pass);
+			if (datasource != null) return dbu.getDatasourceConnection(pc, datasource, user, pass);
 			return dbu.getDatasourceConnection(pc, dsn, user, pass);
 		}
 		catch (PageException pe) {
@@ -73,8 +72,7 @@ public class ConnectionProviderImpl implements ConnectionProvider, Configurable 
 
 	@Override
 	public void closeConnection(Connection conn) throws SQLException {
-		if(conn instanceof DatasourceConnection)
-			dbu.releaseDatasourceConnection(engine.getThreadConfig(), (DatasourceConnection)conn, false);
+		if (conn instanceof DatasourceConnection) dbu.releaseDatasourceConnection(engine.getThreadConfig(), (DatasourceConnection) conn, false);
 	}
 
 	@Override
@@ -94,8 +92,5 @@ public class ConnectionProviderImpl implements ConnectionProvider, Configurable 
 		// TODO
 		return null;
 	}
-
-
-
 
 }

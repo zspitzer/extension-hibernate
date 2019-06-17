@@ -12,5 +12,5 @@ public class HibernateConstants {
 
 	public static final int COLLECTION_TYPE_ARRAY = 1;
 	public static final int COLLECTION_TYPE_STRUCT = 2;
-	
+
 }

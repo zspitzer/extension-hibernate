@@ -30,21 +30,23 @@ public class CFCGetter implements Getter {
 
 	/**
 	 * Constructor of the class
+	 * 
 	 * @param key
 	 */
-	public CFCGetter(String key){
+	public CFCGetter(String key) {
 		this(CommonUtil.createKey(key));
 	}
-	
+
 	/**
 	 * Constructor of the class
-	 * @param engine 
+	 * 
+	 * @param engine
 	 * @param key
 	 */
-	public CFCGetter( Collection.Key key){
-		this.key=key;
+	public CFCGetter(Collection.Key key) {
+		this.key = key;
 	}
-	
+
 	@Override
 	public Object get(Object trg) throws HibernateException {
 		try {
@@ -54,35 +56,33 @@ public class CFCGetter implements Getter {
 			Component cfc = CommonUtil.toComponent(trg);
 			String dsn = CFMLEngineFactory.getInstance().getORMUtil().getDataSourceName(pc, cfc);
 			String name = HibernateCaster.getEntityName(cfc);
-			SessionFactory sf=(SessionFactory) session.getRawSessionFactory(dsn);
+			SessionFactory sf = (SessionFactory) session.getRawSessionFactory(dsn);
 			ClassMetadata metaData = sf.getClassMetadata(name);
 			Type type = HibernateUtil.getPropertyType(metaData, key.getString());
 
-			Object rtn = cfc.getComponentScope().get(key,null);
-			return HibernateCaster.toSQL(type, rtn,null);
-		} 
+			Object rtn = cfc.getComponentScope().get(key, null);
+			return HibernateCaster.toSQL(type, rtn, null);
+		}
 		catch (PageException pe) {
 			throw new HibernatePageException(pe);
 		}
-	catch (Exception e) {
-	    throw new HibernatePageException(CFMLEngineFactory.getInstance().getCastUtil().toPageException(e));
+		catch (Exception e) {
+			throw new HibernatePageException(CFMLEngineFactory.getInstance().getCastUtil().toPageException(e));
+		}
 	}
-	}
-	
 
-	public HibernateORMEngine getHibernateORMEngine(){
+	public HibernateORMEngine getHibernateORMEngine() {
 		try {
 			// TODO better impl
 			return HibernateUtil.getORMEngine(CommonUtil.pc());
-		} 
+		}
 		catch (PageException e) {}
-			
+
 		return null;
 	}
-	
 
 	@Override
-	public Object getForInsert(Object trg, Map arg1, SessionImplementor si)throws HibernateException {
+	public Object getForInsert(Object trg, Map arg1, SessionImplementor si) throws HibernateException {
 		return get(trg);// MUST better solution? this is from MapGetter
 	}
 

@@ -1,4 +1,5 @@
 package org.lucee.extension.orm.hibernate.tuplizer;
+
 import lucee.runtime.Component;
 import lucee.runtime.exp.PageException;
 
@@ -6,8 +7,7 @@ import org.hibernate.EntityNameResolver;
 import org.lucee.extension.orm.hibernate.HibernateCaster;
 import org.lucee.extension.orm.hibernate.HibernatePageException;
 
-
-public  class CFCEntityNameResolver implements EntityNameResolver {
+public class CFCEntityNameResolver implements EntityNameResolver {
 	public static final CFCEntityNameResolver INSTANCE = new CFCEntityNameResolver();
 
 	/**
@@ -18,8 +18,9 @@ public  class CFCEntityNameResolver implements EntityNameResolver {
 		try {
 			Component cfc = HibernateCaster.toComponent(entity);
 			return HibernateCaster.getEntityName(cfc);
-		} catch (PageException pe) {
-			//print.printST(e);
+		}
+		catch (PageException pe) {
+			// print.printST(e);
 			throw new HibernatePageException(pe);
 		}
 	}
@@ -29,7 +30,7 @@ public  class CFCEntityNameResolver implements EntityNameResolver {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		return getClass().equals( obj.getClass() );
+		return getClass().equals(obj.getClass());
 	}
 
 	/**

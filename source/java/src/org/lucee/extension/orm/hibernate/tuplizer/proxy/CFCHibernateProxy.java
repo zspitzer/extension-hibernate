@@ -9,24 +9,20 @@ import lucee.runtime.type.ObjectWrap;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.LazyInitializer;
 
-
-
-
 /**
- * Proxy for "dynamic-map" entity representations.
- * SLOW
+ * Proxy for "dynamic-map" entity representations. SLOW
  */
-public class CFCHibernateProxy extends ComponentProxy implements HibernateProxy, Serializable,ObjectWrap {
+public class CFCHibernateProxy extends ComponentProxy implements HibernateProxy, Serializable, ObjectWrap {
 
 	private static final long serialVersionUID = 4115236247834562085L;
-	
+
 	private CFCLazyInitializer li;
-	
+
 	@Override
 	public Component getComponent() {
 		return li.getCFC();
 	}
-	
+
 	public CFCHibernateProxy(CFCLazyInitializer li) {
 		this.li = li;
 	}

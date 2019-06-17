@@ -6,20 +6,19 @@ import org.hibernate.property.PropertyAccessor;
 import org.hibernate.property.Setter;
 
 public class CFCAccessor implements PropertyAccessor {
-	
-	public CFCAccessor(){
-	}
-	
+
+	public CFCAccessor() {}
+
 	@Override
 	public Getter getGetter(Class clazz, String propertyName) throws PropertyNotFoundException {
 		return new CFCGetter(propertyName);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Setter getSetter(Class clazz, String propertyName)	throws PropertyNotFoundException {
+	public Setter getSetter(Class clazz, String propertyName) throws PropertyNotFoundException {
 		return new CFCSetter(propertyName);
 	}
 

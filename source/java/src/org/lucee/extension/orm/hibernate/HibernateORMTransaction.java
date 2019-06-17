@@ -6,22 +6,22 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 public class HibernateORMTransaction implements ORMTransaction {
-	
+
 	private Transaction trans;
 	private Session session;
 	private boolean doRollback;
 	private boolean autoManage;
 
-	public HibernateORMTransaction(Session session, boolean autoManage){
-		this.session=session;
-		this.autoManage=autoManage;
+	public HibernateORMTransaction(Session session, boolean autoManage) {
+		this.session = session;
+		this.autoManage = autoManage;
 	}
 
 	@Override
 	public void begin() {
-		if(autoManage)session.flush();
-		trans=session.beginTransaction();
-		
+		if (autoManage) session.flush();
+		trans = session.beginTransaction();
+
 	}
 
 	@Override
@@ -31,17 +31,17 @@ public class HibernateORMTransaction implements ORMTransaction {
 
 	@Override
 	public void rollback() {
-		doRollback=true;
+		doRollback = true;
 	}
 
 	@Override
 	public void end() {
-		if(doRollback){
+		if (doRollback) {
 			trans.rollback();
-			if(autoManage)session.clear();
+			if (autoManage) session.clear();
 		}
-		else{
-			trans.commit();
+		else {
+			if (!trans.wasCommitted()) trans.commit();
 			session.flush();
 		}
 	}

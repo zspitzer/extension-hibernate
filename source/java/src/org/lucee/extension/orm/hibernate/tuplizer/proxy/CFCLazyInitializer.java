@@ -11,21 +11,20 @@ import org.lucee.extension.orm.hibernate.CommonUtil;
 import org.lucee.extension.orm.hibernate.HibernatePageException;
 
 /**
- * Lazy initializer for "dynamic-map" entity representations.
- * SLOW
+ * Lazy initializer for "dynamic-map" entity representations. SLOW
  */
 public class CFCLazyInitializer extends AbstractLazyInitializer implements Serializable {
 
-	
 	CFCLazyInitializer(String entityName, Serializable id, SessionImplementor session) {
 		super(entityName, id, session);
-		
+
 	}
 
 	public Component getCFC() {
 		try {
 			return CommonUtil.toComponent(getImplementation());
-		} catch (PageException pe) {
+		}
+		catch (PageException pe) {
 			throw new HibernatePageException(pe);
 		}
 	}
@@ -34,11 +33,5 @@ public class CFCLazyInitializer extends AbstractLazyInitializer implements Seria
 	public Class getPersistentClass() {
 		throw new UnsupportedOperationException("dynamic-map entity representation");
 	}
-	
-	
-	
+
 }
-
-
-
-

@@ -12,17 +12,17 @@ public class PostDeleteEventListenerImpl extends EventListener implements PostDe
 	private static final long serialVersionUID = -4882488527866603549L;
 
 	public PostDeleteEventListenerImpl(Component component) {
-	    super(component, CommonUtil.POST_DELETE, false);
+		super(component, CommonUtil.POST_DELETE, false);
 	}
 
 	@Override
 	public void onPostDelete(PostDeleteEvent event) {
-    	invoke(CommonUtil.POST_DELETE, event.getEntity());
-    }
+		invoke(CommonUtil.POST_DELETE, event.getEntity());
+	}
 
 	@Override
 	public boolean requiresPostCommitHanding(EntityPersister arg0) {
-		// TODO 
+		// TODO
 		return false;
 	}
 

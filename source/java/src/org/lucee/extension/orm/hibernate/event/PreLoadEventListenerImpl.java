@@ -11,12 +11,12 @@ public class PreLoadEventListenerImpl extends EventListener implements PreLoadEv
 	private static final long serialVersionUID = 6470830422058063880L;
 
 	public PreLoadEventListenerImpl(Component component) {
-	    super(component, CommonUtil.PRE_LOAD, false);
+		super(component, CommonUtil.PRE_LOAD, false);
 	}
 
-    @Override
+	@Override
 	public void onPreLoad(PreLoadEvent event) {
-    	invoke(CommonUtil.PRE_LOAD, event.getEntity());
-    }
+		invoke(CommonUtil.PRE_LOAD, event.getEntity());
+	}
 
 }
