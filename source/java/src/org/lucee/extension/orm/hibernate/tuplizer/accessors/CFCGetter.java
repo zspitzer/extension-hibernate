@@ -64,6 +64,9 @@ public class CFCGetter implements Getter {
 		catch (PageException pe) {
 			throw new HibernatePageException(pe);
 		}
+	catch (Exception e) {
+	    throw new HibernatePageException(CFMLEngineFactory.getInstance().getCastUtil().toPageException(e));
+	}
 	}
 	
 
