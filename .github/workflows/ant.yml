@@ -24,3 +24,15 @@ jobs:
       with:
         name: hibernate-lex
         path: dist/*.lex
+    - name: Checkout tools repo
+      uses: actions/checkout@v2
+      with:
+        repository: lucee/lucee
+        path: my-tools
+     # Runs a single command using the runners shell
+    - uses: zspitzer/lucee-script-engine-runner@development
+      with:
+        webroot: ${{ github.workspace }}/lucee/lucee/tests
+        execute: /import.cfm
+        luceeVersion: 6.0.0.106
+        
