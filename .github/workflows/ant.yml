@@ -34,7 +34,7 @@ jobs:
       with:
         repository: lucee/lucee
     - name: Run Lucee Test Suite
-    - uses: zspitzer/lucee-script-engine-runner@main
+      uses: zspitzer/lucee-script-engine-runner@main
       with:
         webroot: ${{ github.workspace }}/lucee/lucee
         execute: /run-tests.cfm
