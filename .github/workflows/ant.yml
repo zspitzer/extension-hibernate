@@ -44,4 +44,4 @@ jobs:
         webroot: ${{ github.workspace }}/lucee/lucee/test
         execute: /bootstrap-tests.cfm
         luceeVersion: 6.0.0.95-SNAPSHOT
-        extensionDir: dist
+        extensionDir: ${{ github.workspace }}/dist
