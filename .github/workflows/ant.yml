@@ -17,6 +17,11 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+    - name: Cache Maven packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: lucee-script-runner-maven-cache
     - name: Build with Ant
       run: ant -noinput -verbose -buildfile build.xml
     - name: Upload Artifact
@@ -24,3 +29,14 @@ jobs:
       with:
         name: hibernate-lex
         path: dist/*.lex
+    - name: Checkout tools repo
+      uses: actions/checkout@v2
+      with:
+        repository: lucee/lucee
+    - name: Run Lucee Test Suite
+    - uses: zspitzer/lucee-script-engine-runner@main
+      with:
+        webroot: ${{ github.workspace }}/lucee/lucee
+        execute: /run-tests.cfm
+        luceeVersion: 6.0.0.95-SNAPSHOT
+        extensionDir: ${{ github.workspace }}/dist
