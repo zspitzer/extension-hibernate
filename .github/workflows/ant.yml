@@ -25,7 +25,7 @@ jobs:
     - name: Cache Lucee files
       uses: actions/cache@v2
       with:
-        path: ${{ github.workspace }}/_actions/zspitzer/lucee-script-engine-runner/main/lucee-download-cache/
+        path: _actions/zspitzer/lucee-script-engine-runner/main/lucee-download-cache/
         key: lucee-downloads
     - name: Build with Ant
       run: ant -noinput -verbose -buildfile build.xml
