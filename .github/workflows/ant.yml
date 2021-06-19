@@ -38,10 +38,11 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: lucee/lucee
+        path: lucee
     - name: Run Lucee Test Suite
       uses: zspitzer/lucee-script-engine-runner@main
       with:
-        webroot: ${{ github.workspace }}/lucee/lucee/test
+        webroot: ${{ github.workspace }}/lucee/test
         execute: /bootstrap-tests.cfm
         luceeVersion: 6.0.0.95-SNAPSHOT
         extensionDir: ${{ github.workspace }}/dist
