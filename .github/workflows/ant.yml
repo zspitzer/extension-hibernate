@@ -29,7 +29,7 @@ jobs:
       with:
         name: hibernate-lex
         path: dist/*.lex
-    - name: Checkout tools repo
+    - name: Checkout Lucee
       uses: actions/checkout@v2
       with:
         repository: lucee/lucee
