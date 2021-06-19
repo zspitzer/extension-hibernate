@@ -41,7 +41,7 @@ jobs:
     - name: Run Lucee Test Suite
       uses: zspitzer/lucee-script-engine-runner@main
       with:
-        webroot: ${{ github.workspace }}/lucee/lucee
+        webroot: ${{ github.workspace }}/lucee/lucee/test
         execute: /bootstrap-tests.cfm
         luceeVersion: 6.0.0.95-SNAPSHOT
         extensionDir: ${{ github.workspace }}/dist
