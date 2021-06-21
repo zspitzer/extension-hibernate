@@ -9,6 +9,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      luceeVersion: 6.0.0.95-SNAPSHOT
 
     steps:
     - uses: actions/checkout@v2
@@ -26,7 +28,9 @@ jobs:
       uses: actions/cache@v2
       with:
         path: _actions/zspitzer/lucee-script-engine-runner/main/lucee-download-cache/
-        key: lucee-downloads
+        key: lucee-downloads-${{ env.luceeVersion }}
+        restore-keys: |
+          lucee-downloads
     - name: Build with Ant
       run: ant -noinput -verbose -buildfile build.xml
     - name: Upload Artifact
@@ -44,7 +48,7 @@ jobs:
       with:
         webroot: ${{ github.workspace }}/lucee/test
         execute: /bootstrap-tests.cfm
-        luceeVersion: 6.0.0.95-SNAPSHOT
+        luceeVersion: ${{ env.luceeVersion }}
         extensionDir: ${{ github.workspace }}/dist
       env:
         testLabels: orm
