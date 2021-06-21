@@ -47,4 +47,4 @@ jobs:
         luceeVersion: 6.0.0.95-SNAPSHOT
         extensionDir: ${{ github.workspace }}/dist
       env:
-        testFilter: orm
+        testLabels: orm
