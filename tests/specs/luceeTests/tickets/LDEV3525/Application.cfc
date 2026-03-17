@@ -1,5 +1,6 @@
 component displayname="Application" output="false" {
 
+	param name="url.autogenmap" default="true";
 	this.name = "autogenmap-missing-LDEV-3525-#url.autogenmap#";
 
 	this.mappings[ "testsRoot" ]     = "/tests";
