@@ -5,7 +5,6 @@ import org.lucee.extension.orm.hibernate.logging.LoggerLevelManager;
 import org.lucee.extension.orm.hibernate.logging.OrmLoggingSettings;
 import org.lucee.extension.orm.hibernate.util.CommonUtil;
 import org.lucee.extension.orm.hibernate.util.ExceptionUtil;
-import org.lucee.extension.orm.hibernate.util.ExtensionUtil;
 import org.lucee.extension.orm.hibernate.util.HibernateUtil;
 
 import java.util.HashMap;
@@ -46,12 +45,6 @@ public class HibernateORMEngine implements ORMEngine {
 	private static final Object INIT_LOCK = new Object();
 
 	static {
-		// LDEV-4276 LDEV-6225
-		// JAXB context factory property name differs by JVM version; on Java 17+ the old name causes NPEs
-		String jaxbContextProperty = ExtensionUtil.getJVMVersion() < 11 ? "javax.xml.bind.context.factory"
-				: "javax.xml.bind.JAXBContextFactory";
-		System.setProperty( jaxbContextProperty, "com.sun.xml.bind.v2.ContextFactory" );
-
 		// Force JBoss Logging to use our Lucee bridge (also registered via META-INF/services)
 		System.setProperty("org.jboss.logging.provider", "org.lucee.extension.orm.hibernate.logging.LuceeJBossLoggerProvider");
 	}
