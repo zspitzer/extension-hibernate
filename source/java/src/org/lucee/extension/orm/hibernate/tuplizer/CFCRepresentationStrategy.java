@@ -3,6 +3,7 @@ package org.lucee.extension.orm.hibernate.tuplizer;
 import java.util.function.Consumer;
 
 import org.hibernate.EntityNameResolver;
+import org.hibernate.HibernateException;
 import org.hibernate.bytecode.spi.ReflectionOptimizer;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
@@ -14,6 +15,7 @@ import org.hibernate.property.access.spi.PropertyAccess;
 import org.hibernate.proxy.ProxyFactory;
 import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.java.JavaType;
+import org.lucee.extension.orm.hibernate.SessionFactoryData;
 import org.lucee.extension.orm.hibernate.tuplizer.accessors.CFCGetter;
 import org.lucee.extension.orm.hibernate.tuplizer.accessors.CFCSetter;
 import org.lucee.extension.orm.hibernate.tuplizer.proxy.CFCHibernateProxyFactory;
@@ -42,7 +44,12 @@ public class CFCRepresentationStrategy implements EntityRepresentationStrategy {
 		pf.postInstantiate(bootDescriptor);
 		this.proxyFactory = pf;
 
-		this.instantiator = new CFCInstantiator(bootDescriptor);
+		SessionFactoryData data = SessionFactoryData.CURRENT_BUILDING.get();
+		if (data == null) {
+			throw new HibernateException("CFCRepresentationStrategy created outside SessionFactoryData.buildSessionFactory() — entity ["
+					+ entityName + "] cannot resolve its CFC template. SessionFactoryData.CURRENT_BUILDING thread-local was not set.");
+		}
+		this.instantiator = new CFCInstantiator(bootDescriptor, data);
 	}
 
 	@Override

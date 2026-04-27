@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.metamodel.model.domain.internal.MapMember;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.LazyInitializer;
 import org.hibernate.property.access.spi.Getter;
@@ -80,7 +81,12 @@ public class CFCGetter implements Getter {
 
 	@Override
 	public Member getMember() {
-		return null;
+		// Hibernate 7.x JPA metamodel build (AttributeFactory) requires the Member
+		// to be Field, Method, or MapMember — anything else throws AssertionFailure
+		// "Unexpected member type". CFCs aren't backed by a real Field/Method, so
+		// hand back a MapMember (the dynamic-model virtual-member type Hibernate
+		// uses for Map-mode entities).
+		return new MapMember(key.getString(), type != null ? type.getReturnedClass() : Object.class);
 	}
 
 	@Override
