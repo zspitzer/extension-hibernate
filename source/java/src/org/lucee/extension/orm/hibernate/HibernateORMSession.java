@@ -3,6 +3,8 @@ package org.lucee.extension.orm.hibernate;
 import org.lucee.extension.orm.hibernate.util.CommonUtil;
 import org.lucee.extension.orm.hibernate.util.ExceptionUtil;
 import org.lucee.extension.orm.hibernate.util.HibernateUtil;
+import org.lucee.extension.orm.hibernate.util.HqlNormalizer;
+import org.lucee.extension.orm.hibernate.util.ORMConfigurationUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -574,6 +576,11 @@ public class HibernateORMSession implements ORMSession {
 		hql = hql.trim();
 		boolean isParamArray = params != null && CommonUtil.isArray(params);
 		if (isParamArray) hql = addIndexIfNecessary(hql);
+		// Stage 7l: HQL case-insensitive bridging is scaffolded but disabled — turning
+		// on token lowercasing alone (without HBM-side coordination + canonical-case
+		// internal lookups) breaks every entity operation. Stage 7m will wire it up.
+		// To re-enable when ready:
+		//   if (!ORMConfigurationUtil.isHqlCaseSensitive(pc)) hql = HqlNormalizer.normalize(hql);
 		Query<?> query = session.createQuery(hql);
 		// options
 		if (options != null) {

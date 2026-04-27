@@ -6,8 +6,13 @@ import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
+import lucee.runtime.Component;
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Struct;
 
 // FUTURE update ORMConfiguration interface
 public class ORMConfigurationUtil {
@@ -119,6 +124,55 @@ public class ORMConfigurationUtil {
 			}
 		}
 		return conf.getSqlScript();
+	}
+
+	private static final Key KEY_ORM_SETTINGS      = CommonUtil.createKey("ormSettings");
+	private static final Key KEY_HQL_CASE_SENSITIVE = CommonUtil.createKey("hqlCaseSensitive");
+
+	/**
+	 * Reads the raw {@code this.ormSettings} struct from the current Application.cfc
+	 * Component. Custom keys (those not in Lucee's standard ORMConfiguration set) survive
+	 * here — {@link ORMConfiguration#toStruct()} only returns recognised keys.
+	 *
+	 * Uses reflection on {@code ModernApplicationContext.getComponent()}; returns null
+	 * for ClassicApplicationContext, older Lucee versions, or applications without
+	 * {@code this.ormSettings} configured.
+	 *
+	 * @param pc the page context for the current request
+	 * @return the raw ormSettings struct, or null if unavailable
+	 */
+	public static Struct getOrmSettings(PageContext pc) {
+		if (pc == null) return null;
+		try {
+			ApplicationContext ac = pc.getApplicationContext();
+			Method getComponent = ac.getClass().getMethod("getComponent");
+			Component appCFC = (Component) getComponent.invoke(ac);
+			if (appCFC == null) return null;
+			Object settings = appCFC.get(KEY_ORM_SETTINGS, null);
+			if (settings instanceof Struct) return (Struct) settings;
+		}
+		catch (Exception e) {
+			// ClassicApplicationContext / older Lucee / no ormSettings — caller falls back
+		}
+		return null;
+	}
+
+	/**
+	 * Reads the {@code hqlCaseSensitive} key from {@code this.ormSettings}. When false
+	 * (the default), the extension lowercases HBM property names and pre-processes HQL
+	 * identifier tokens — bridging CFML's case-insensitive semantics to Hibernate 7's
+	 * strict parser. Setting it to true preserves vanilla H7 behaviour.
+	 *
+	 * @param pc the page context for the current request
+	 * @return true if the user opted into strict H7 HQL behaviour; false (default)
+	 *         means apply CFML case-insensitive bridging
+	 */
+	public static boolean isHqlCaseSensitive(PageContext pc) {
+		Struct ormSettings = getOrmSettings(pc);
+		if (ormSettings == null) return false;
+		Object v = ormSettings.get(KEY_HQL_CASE_SENSITIVE, null);
+		if (v == null) return false;
+		return CFMLEngineFactory.getInstance().getCastUtil().toBooleanValue(v, false);
 	}
 
 	public static void dump(ORMConfiguration ormConf, String name) throws PageException {
