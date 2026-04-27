@@ -389,7 +389,7 @@ public class HibernateORMSession implements ORMSession {
 			} else {
 				try {
 					session.persist(name, cfc);
-				} catch (jakarta.persistence.PersistenceException pe) {
+				} catch (org.hibernate.PersistentObjectException | jakarta.persistence.EntityExistsException pe) {
 					// detached (id is set, not transient) — merge writes through
 					// to DB but does not re-attach the caller's reference
 					session.merge(name, cfc);

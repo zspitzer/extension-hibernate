@@ -28,6 +28,8 @@ public class CFCGetter implements Getter {
 	private Type type;
 	private String entityName;
 	private final int sqlType;
+	private final String typeName;
+	private final Class<?> returnedClass;
 
 	/**
 	 * Constructor of the class
@@ -44,6 +46,8 @@ public class CFCGetter implements Getter {
 		this.type = type;
 		this.entityName = entityName;
 		this.sqlType = type != null ? HibernateCaster.toSQLType(type.getName(), Types.OTHER) : Types.OTHER;
+		this.typeName = type != null ? type.getName() : null;
+		this.returnedClass = type != null ? type.getReturnedClass() : null;
 	}
 
 	@Override
@@ -56,6 +60,25 @@ public class CFCGetter implements Getter {
 			if (rtn instanceof HibernateProxy) {
 				LazyInitializer li = ((HibernateProxy) rtn).getHibernateLazyInitializer();
 				if (li.isUninitialized()) return rtn;
+			}
+			// Hibernate 7's JavaType.cast() is strict — no String→TimeZone/Locale/Calendar
+			// coercion. When the CFML value's class doesn't match the Hibernate type's
+			// expected Java class, convert via toHibernateValue (knows "timezone"→TimeZone,
+			// "locale"→Locale, "calendar"→Calendar, "big_integer"→BigInteger, etc.).
+			// CFML uses empty string for "no value" on non-string fields — treat as null
+			// (matches HibernateCaster's existing isStringSafeField rule).
+			if (returnedClass != null && rtn != null && !returnedClass.isInstance(rtn)) {
+				if (rtn instanceof String && ((String) rtn).isEmpty()) {
+					rtn = null;
+				} else {
+					try {
+						rtn = HibernateCaster.toHibernateValue(CommonUtil.pc(), rtn, typeName);
+					} catch (PageException ignore) {
+						// CFML default="" or similar that doesn't round-trip cleanly — pass null
+						// rather than fail the persist (matches H5.x lenient behaviour)
+						rtn = null;
+					}
+				}
 			}
 			return HibernateCaster.toSQL(this.sqlType, rtn, null);
 		} catch (PageException pe) {
