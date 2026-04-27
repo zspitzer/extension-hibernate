@@ -1,6 +1,7 @@
 package org.lucee.extension.orm.hibernate.util;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -18,10 +19,11 @@ import org.lucee.extension.orm.hibernate.Dialect;
 import org.lucee.extension.orm.hibernate.SessionFactoryData;
 import org.lucee.extension.orm.hibernate.event.EventListenerIntegrator;
 import org.lucee.extension.orm.hibernate.jdbc.ConnectionProviderImpl;
-import org.w3c.dom.Document;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.loader.engine.CFMLEngine;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.PageException;
@@ -93,15 +95,27 @@ public class ConfigurationBuilder {
                             + "Custom ehcache.xml configs are no longer supported.");
         }
 
-        // ormConfig
+        // ormConfig — hibernate.cfg.xml-format file. Hibernate 7 dropped configure(Document); only
+        // String / URL / File overloads remain. If the Lucee Resource is file-backed we pass directly;
+        // otherwise (S3 / RAM / etc.) we materialize to a temp file so configure(File) works uniformly.
         Resource conf = ormConf.getOrmConfig();
         if (conf != null) {
             try {
-                Document doc = CommonUtil.toDocument(conf, null);
-                configuration.configure(doc);
+                File configFile;
+                if (conf instanceof File) {
+                    configFile = (File) conf;
+                }
+                else {
+                    CFMLEngine eng = CFMLEngineFactory.getInstance();
+                    Resource temp = eng.getResourceUtil().getTempDirectory().getRealResource(
+                            "hibernate-orm-config-" + System.nanoTime() + ".xml");
+                    eng.getIOUtil().copy(conf, temp);
+                    if (!(temp instanceof File)) throw new IOException("Lucee temp resource is not file-backed [" + temp.getClass().getName() + "]");
+                    configFile = (File) temp;
+                }
+                configuration.configure(configFile);
             } catch (Exception e) {
                 log.log(Log.LEVEL_ERROR, "hibernate", e);
-
             }
         }
 
