@@ -22,6 +22,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.generator.Generator;
 import org.hibernate.metamodel.model.domain.EntityDomainType;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.query.ParameterMetadata;
@@ -384,23 +385,49 @@ public class HibernateORMSession implements ORMSession {
 			// For already-attached entities it's a no-op (dirty-checking will
 			// flush updates). Detached entities (id set, not in session) are
 			// rare in practice — fall back to merge for them.
+			boolean persisted = false;
 			if (forceInsert) {
 				session.persist(name, cfc);
+				persisted = true;
 			} else if (session.contains(cfc)) {
 				// already attached — dirty-checking handles updates at flush
 			} else {
 				try {
 					session.persist(name, cfc);
+					persisted = true;
 				} catch (org.hibernate.PersistentObjectException | jakarta.persistence.EntityExistsException pe) {
 					// detached (id is set, not transient) — merge writes through
 					// to DB but does not re-attach the caller's reference
 					session.merge(name, cfc);
 				}
 			}
+
+			// Adobe-documented semantic: nativeId/identity-generated entities are
+			// inserted immediately on entitySave so getId() works right after.
+			// Pre-7.3 saveOrUpdate did this implicitly; JPA persist() defers the
+			// insert when not in a transaction (AbstractSaveEventListener.delayIdentityInserts).
+			// Drain the action queue's pending inserts only — narrower than session.flush(),
+			// which would also write dirty updates/deletes/collections.
+			if (persisted && hasOnExecutionGenerator(session, name)) {
+				((org.hibernate.engine.spi.SessionImplementor) session).getActionQueue().executeInserts();
+			}
 		}
 		catch (Exception e) {
 			throw ExceptionUtil.createException(this, null, e);
 		}
+	}
+
+	/**
+	 * True if the entity uses an on-execution (post-insert) id generator like IDENTITY,
+	 * where Hibernate must INSERT to obtain the id. Such entities require an immediate
+	 * flush after persist() so {@code entity.getId()} returns the generated value.
+	 */
+	private static boolean hasOnExecutionGenerator(Session session, String entityName) {
+		EntityPersister persister = ((SessionFactoryImplementor) session.getSessionFactory())
+				.getMappingMetamodel().findEntityDescriptor(entityName);
+		if (persister == null) return false;
+		Generator gen = persister.getGenerator();
+		return gen != null && gen.generatedOnExecution();
 	}
 
     /**
