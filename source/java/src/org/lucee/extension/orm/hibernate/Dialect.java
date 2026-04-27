@@ -66,88 +66,88 @@ public class Dialect {
 			ex.printStackTrace();
 		}
 
-		dialects.setEL(CommonUtil.createKey("CUBRID"), "org.hibernate.dialect.CUBRIDDialect");
-		dialects.setEL(CommonUtil.createKey("Cache71"), "org.hibernate.dialect.Cache71Dialect");
-		dialects.setEL(CommonUtil.createKey("CockroachDB192"), "org.hibernate.dialect.CockroachDB192Dialect");
-		dialects.setEL(CommonUtil.createKey("CockroachDB201"), "org.hibernate.dialect.CockroachDB201Dialect");
-		dialects.setEL(CommonUtil.createKey("DB2390"), "org.hibernate.dialect.DB2390Dialect");
-		dialects.setEL(CommonUtil.createKey("DB2390V8"), "org.hibernate.dialect.DB2390V8Dialect");
-		dialects.setEL(CommonUtil.createKey("DB2400"), "org.hibernate.dialect.DB2400Dialect");
-		dialects.setEL(CommonUtil.createKey("DB2400V7R3"), "org.hibernate.dialect.DB2400V7R3Dialect");
-		dialects.setEL(CommonUtil.createKey("DB297"), "org.hibernate.dialect.DB297Dialect");
-		dialects.setEL(CommonUtil.createKey("DB2"), "org.hibernate.dialect.DB2Dialect");
-		dialects.setEL(CommonUtil.createKey("DataDirectOracle9"), "org.hibernate.dialect.DataDirectOracle9Dialect");
-		dialects.setEL(CommonUtil.createKey("Derby"), "org.hibernate.dialect.DerbyDialect");
-		dialects.setEL(CommonUtil.createKey("DerbyTenFive"), "org.hibernate.dialect.DerbyTenFiveDialect");
-		dialects.setEL(CommonUtil.createKey("DerbyTenSeven"), "org.hibernate.dialect.DerbyTenSevenDialect");
-		dialects.setEL(CommonUtil.createKey("DerbyTenSix"), "org.hibernate.dialect.DerbyTenSixDialect");
-		dialects.setEL(CommonUtil.createKey("Firebird"), "org.hibernate.dialect.FirebirdDialect");
-		dialects.setEL(CommonUtil.createKey("FrontBase"), "org.hibernate.dialect.FrontBaseDialect");
-		dialects.setEL(CommonUtil.createKey("H2"), "org.hibernate.dialect.H2Dialect");
-		dialects.setEL(CommonUtil.createKey("HANACloudColumnStore"),
-				"org.hibernate.dialect.HANACloudColumnStoreDialect");
-		dialects.setEL(CommonUtil.createKey("HANAColumnStore"), "org.hibernate.dialect.HANAColumnStoreDialect");
-		dialects.setEL(CommonUtil.createKey("HANARowStore"), "org.hibernate.dialect.HANARowStoreDialect");
-		dialects.setEL(CommonUtil.createKey("HSQL"), "org.hibernate.dialect.HSQLDialect");
-		dialects.setEL(CommonUtil.createKey("Informix10"), "org.hibernate.dialect.Informix10Dialect");
-		dialects.setEL(CommonUtil.createKey("Informix"), "org.hibernate.dialect.InformixDialect");
-		dialects.setEL(CommonUtil.createKey("Ingres10"), "org.hibernate.dialect.Ingres10Dialect");
-		dialects.setEL(CommonUtil.createKey("Ingres9"), "org.hibernate.dialect.Ingres9Dialect");
-		dialects.setEL(CommonUtil.createKey("Ingres"), "org.hibernate.dialect.IngresDialect");
-		dialects.setEL(CommonUtil.createKey("Interbase"), "org.hibernate.dialect.InterbaseDialect");
-		dialects.setEL(CommonUtil.createKey("JDataStore"), "org.hibernate.dialect.JDataStoreDialect");
-		dialects.setEL(CommonUtil.createKey("MariaDB102"), "org.hibernate.dialect.MariaDB102Dialect");
-		dialects.setEL(CommonUtil.createKey("MariaDB103"), "org.hibernate.dialect.MariaDB103Dialect");
-		dialects.setEL(CommonUtil.createKey("MariaDB10"), "org.hibernate.dialect.MariaDB10Dialect");
-		dialects.setEL(CommonUtil.createKey("MariaDB53"), "org.hibernate.dialect.MariaDB53Dialect");
-		dialects.setEL(CommonUtil.createKey("MariaDB"), "org.hibernate.dialect.MariaDBDialect");
-		dialects.setEL(CommonUtil.createKey("Mckoi"), "org.hibernate.dialect.MckoiDialect");
-		dialects.setEL(CommonUtil.createKey("MimerSQL"), "org.hibernate.dialect.MimerSQLDialect");
-		// Hibernate 7.x removed all version-specific MySQL dialects; MySQLDialect now
-		// auto-detects the server version via JDBC metadata. All historical aliases
-		// resolve to the same class — version detection happens at SF build.
-		dialects.setEL(CommonUtil.createKey("MySQL55"), "org.hibernate.dialect.MySQLDialect");
-		dialects.setEL(CommonUtil.createKey("MySQL57"), "org.hibernate.dialect.MySQLDialect");
-		dialects.setEL(CommonUtil.createKey("MySQL57InnoDB"), "org.hibernate.dialect.MySQLDialect");
-		dialects.setEL(CommonUtil.createKey("MySQL5"), "org.hibernate.dialect.MySQLDialect");
-		dialects.setEL(CommonUtil.createKey("MySQL5InnoDB"), "org.hibernate.dialect.MySQLDialect");
-		dialects.setEL(CommonUtil.createKey("MySQL8"), "org.hibernate.dialect.MySQLDialect");
-		dialects.setEL(CommonUtil.createKey("MySQL"), "org.hibernate.dialect.MySQLDialect");
-		dialects.setEL(CommonUtil.createKey("MySQLInnoDB"), "org.hibernate.dialect.MySQLDialect");
-		dialects.setEL(CommonUtil.createKey("MySQLMyISAM"), "org.hibernate.dialect.MySQLDialect");
-		dialects.setEL(CommonUtil.createKey("Oracle10g"), "org.hibernate.dialect.Oracle10gDialect");
-		dialects.setEL(CommonUtil.createKey("Oracle12c"), "org.hibernate.dialect.Oracle12cDialect");
-		dialects.setEL(CommonUtil.createKey("Oracle8i"), "org.hibernate.dialect.Oracle8iDialect");
-		dialects.setEL(CommonUtil.createKey("Oracle9"), "org.hibernate.dialect.Oracle9Dialect");
-		dialects.setEL(CommonUtil.createKey("Oracle9i"), "org.hibernate.dialect.Oracle9iDialect");
-		dialects.setEL(CommonUtil.createKey("Oracle"), "org.hibernate.dialect.OracleDialect");
-		dialects.setEL(CommonUtil.createKey("Pointbase"), "org.hibernate.dialect.PointbaseDialect");
-		dialects.setEL(CommonUtil.createKey("PostgreSQL10"), "org.hibernate.dialect.PostgreSQL10Dialect");
-		dialects.setEL(CommonUtil.createKey("PostgreSQL81"), "org.hibernate.dialect.PostgreSQL81Dialect");
-		dialects.setEL(CommonUtil.createKey("PostgreSQL82"), "org.hibernate.dialect.PostgreSQL82Dialect");
-		dialects.setEL(CommonUtil.createKey("PostgreSQL91"), "org.hibernate.dialect.PostgreSQL91Dialect");
-		dialects.setEL(CommonUtil.createKey("PostgreSQL92"), "org.hibernate.dialect.PostgreSQL92Dialect");
-		dialects.setEL(CommonUtil.createKey("PostgreSQL93"), "org.hibernate.dialect.PostgreSQL93Dialect");
-		dialects.setEL(CommonUtil.createKey("PostgreSQL94"), "org.hibernate.dialect.PostgreSQL94Dialect");
-		dialects.setEL(CommonUtil.createKey("PostgreSQL95"), "org.hibernate.dialect.PostgreSQL95Dialect");
-		dialects.setEL(CommonUtil.createKey("PostgreSQL9"), "org.hibernate.dialect.PostgreSQL9Dialect");
-		dialects.setEL(CommonUtil.createKey("PostgreSQL"), "org.hibernate.dialect.PostgreSQLDialect");
-		dialects.setEL(CommonUtil.createKey("PostgresPlus"), "org.hibernate.dialect.PostgresPlusDialect");
-		dialects.setEL(CommonUtil.createKey("Progress"), "org.hibernate.dialect.ProgressDialect");
-		dialects.setEL(CommonUtil.createKey("RDMSOS2200"), "org.hibernate.dialect.RDMSOS2200Dialect");
-		dialects.setEL(CommonUtil.createKey("SAPDB"), "org.hibernate.dialect.SAPDBDialect");
-		dialects.setEL(CommonUtil.createKey("SQLServer2005"), "org.hibernate.dialect.SQLServer2005Dialect");
-		dialects.setEL(CommonUtil.createKey("SQLServer2008"), "org.hibernate.dialect.SQLServer2008Dialect");
-		dialects.setEL(CommonUtil.createKey("SQLServer2012"), "org.hibernate.dialect.SQLServer2012Dialect");
-		dialects.setEL(CommonUtil.createKey("SQLServer"), "org.hibernate.dialect.SQLServerDialect");
-		dialects.setEL(CommonUtil.createKey("Sybase11"), "org.hibernate.dialect.Sybase11Dialect");
-		dialects.setEL(CommonUtil.createKey("SybaseASE157"), "org.hibernate.dialect.SybaseASE157Dialect");
-		dialects.setEL(CommonUtil.createKey("SybaseASE15"), "org.hibernate.dialect.SybaseASE15Dialect");
-		dialects.setEL(CommonUtil.createKey("SybaseAnywhere"), "org.hibernate.dialect.SybaseAnywhereDialect");
-		dialects.setEL(CommonUtil.createKey("Sybase"), "org.hibernate.dialect.SybaseDialect");
-		dialects.setEL(CommonUtil.createKey("Teradata14"), "org.hibernate.dialect.Teradata14Dialect");
-		dialects.setEL(CommonUtil.createKey("Teradata"), "org.hibernate.dialect.TeradataDialect");
-		dialects.setEL(CommonUtil.createKey("TimesTen"), "org.hibernate.dialect.TimesTenDialect");
+		// Hibernate 7.3 deleted all version-specific dialect classes; the surviving
+		// per-vendor dialect detects the server version via JDBC metadata at SF build.
+		// The OSGi scan above auto-registers what's actually in the core jar (FQN +
+		// simple name + short name). Below: legacy aliases only — historical names
+		// that no longer have a matching class, mapped to their surviving family.
+		// Names from `hibernate-community-dialects` (Derby, Firebird, Informix, Ingres,
+		// Teradata, TimesTen, CUBRID, Cache71, Mckoi, etc.) are intentionally absent —
+		// we do not ship that artifact, so resolution returns null with a clear error.
+
+		// Oracle — Oracle8i/9/9i/10g/12c all gone, only OracleDialect survives
+		String oracle = "org.hibernate.dialect.OracleDialect";
+		dialects.setEL(CommonUtil.createKey("Oracle8i"), oracle);
+		dialects.setEL(CommonUtil.createKey("Oracle9"), oracle);
+		dialects.setEL(CommonUtil.createKey("Oracle9i"), oracle);
+		dialects.setEL(CommonUtil.createKey("Oracle10g"), oracle);
+		dialects.setEL(CommonUtil.createKey("Oracle12c"), oracle);
+		dialects.setEL(CommonUtil.createKey("DataDirectOracle9"), oracle);
+
+		// SQLServer — 2005/2008/2012 all gone, only SQLServerDialect survives
+		String sqlServer = "org.hibernate.dialect.SQLServerDialect";
+		dialects.setEL(CommonUtil.createKey("SQLServer2005"), sqlServer);
+		dialects.setEL(CommonUtil.createKey("SQLServer2008"), sqlServer);
+		dialects.setEL(CommonUtil.createKey("SQLServer2012"), sqlServer);
+
+		// PostgreSQL — 81/82/9/91/92/93/94/95/10 all gone, only PostgreSQLDialect survives
+		String postgres = "org.hibernate.dialect.PostgreSQLDialect";
+		dialects.setEL(CommonUtil.createKey("PostgreSQL81"), postgres);
+		dialects.setEL(CommonUtil.createKey("PostgreSQL82"), postgres);
+		dialects.setEL(CommonUtil.createKey("PostgreSQL9"), postgres);
+		dialects.setEL(CommonUtil.createKey("PostgreSQL91"), postgres);
+		dialects.setEL(CommonUtil.createKey("PostgreSQL92"), postgres);
+		dialects.setEL(CommonUtil.createKey("PostgreSQL93"), postgres);
+		dialects.setEL(CommonUtil.createKey("PostgreSQL94"), postgres);
+		dialects.setEL(CommonUtil.createKey("PostgreSQL95"), postgres);
+		dialects.setEL(CommonUtil.createKey("PostgreSQL10"), postgres);
+
+		// MySQL — every version-specific dialect gone, only MySQLDialect survives (Stage 7h)
+		String mysql = "org.hibernate.dialect.MySQLDialect";
+		dialects.setEL(CommonUtil.createKey("MySQL5"), mysql);
+		dialects.setEL(CommonUtil.createKey("MySQL55"), mysql);
+		dialects.setEL(CommonUtil.createKey("MySQL57"), mysql);
+		dialects.setEL(CommonUtil.createKey("MySQL5InnoDB"), mysql);
+		dialects.setEL(CommonUtil.createKey("MySQL57InnoDB"), mysql);
+		dialects.setEL(CommonUtil.createKey("MySQL8"), mysql);
+		dialects.setEL(CommonUtil.createKey("MySQLInnoDB"), mysql);
+		dialects.setEL(CommonUtil.createKey("MySQLMyISAM"), mysql);
+
+		// MariaDB — 10/53/102/103 all gone, only MariaDBDialect survives
+		String mariaDb = "org.hibernate.dialect.MariaDBDialect";
+		dialects.setEL(CommonUtil.createKey("MariaDB10"), mariaDb);
+		dialects.setEL(CommonUtil.createKey("MariaDB53"), mariaDb);
+		dialects.setEL(CommonUtil.createKey("MariaDB102"), mariaDb);
+		dialects.setEL(CommonUtil.createKey("MariaDB103"), mariaDb);
+
+		// Sybase — Sybase11 / SybaseAnywhere gone; SybaseASE15/157 collapse to SybaseASEDialect
+		String sybaseAse = "org.hibernate.dialect.SybaseASEDialect";
+		dialects.setEL(CommonUtil.createKey("SybaseASE15"), sybaseAse);
+		dialects.setEL(CommonUtil.createKey("SybaseASE157"), sybaseAse);
+		String sybase = "org.hibernate.dialect.SybaseDialect";
+		dialects.setEL(CommonUtil.createKey("Sybase11"), sybase);
+		dialects.setEL(CommonUtil.createKey("SybaseAnywhere"), sybase);
+
+		// HANA — Cloud/Column/Row variants gone, only HANADialect survives
+		String hana = "org.hibernate.dialect.HANADialect";
+		dialects.setEL(CommonUtil.createKey("HANACloudColumnStore"), hana);
+		dialects.setEL(CommonUtil.createKey("HANAColumnStore"), hana);
+		dialects.setEL(CommonUtil.createKey("HANARowStore"), hana);
+
+		// DB2 — DB2390(V8) → DB2zDialect, DB2400(V7R3) → DB2iDialect, DB297 → DB2Dialect
+		String db2 = "org.hibernate.dialect.DB2Dialect";
+		String db2i = "org.hibernate.dialect.DB2iDialect";
+		String db2z = "org.hibernate.dialect.DB2zDialect";
+		dialects.setEL(CommonUtil.createKey("DB297"), db2);
+		dialects.setEL(CommonUtil.createKey("DB2390"), db2z);
+		dialects.setEL(CommonUtil.createKey("DB2390V8"), db2z);
+		dialects.setEL(CommonUtil.createKey("DB2400"), db2i);
+		dialects.setEL(CommonUtil.createKey("DB2400V7R3"), db2i);
+
+		// Cockroach — CockroachDB192/201 gone, only CockroachDialect survives
+		String cockroach = "org.hibernate.dialect.CockroachDialect";
+		dialects.setEL(CommonUtil.createKey("CockroachDB192"), cockroach);
+		dialects.setEL(CommonUtil.createKey("CockroachDB201"), cockroach);
 
 	}
 
