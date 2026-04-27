@@ -13,23 +13,29 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.QueryException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.criterion.Example;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.engine.query.spi.HQLQueryPlan;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.metamodel.model.domain.EntityDomainType;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.query.Query;
+import org.hibernate.query.SelectionQuery;
 import org.hibernate.query.internal.ParameterMetadataImpl;
 import org.hibernate.type.Type;
+
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.types.RefBoolean;
@@ -843,41 +849,51 @@ public class HibernateORMSession implements ORMSession {
 		ComponentScope scope = cfc.getComponentScope();
 		String name = HibernateCaster.getEntityName(cfc);
 		Session sess = getSession(pc, dsn);
-		Object rtn = null;
 
 		try {
-			// trans.begin();
-
-			EntityPersister metaData = ((SessionFactoryImplementor) sess.getSessionFactory()).getMappingMetamodel().findEntityDescriptor(name);
+			SessionFactoryImplementor sfi = (SessionFactoryImplementor) sess.getSessionFactory();
+			EntityPersister metaData = sfi.getMappingMetamodel().findEntityDescriptor(name);
 			String idName = metaData.getIdentifierPropertyName();
 			Type idType = metaData.getIdentifierType();
 
-			Criteria criteria = sess.createCriteria(name);
+			CriteriaBuilder cb = sess.getCriteriaBuilder();
+			CriteriaQuery<Object> cq = cb.createQuery();
+			EntityDomainType<?> entityType = sfi.getJpaMetamodel().entity(name);
+			Root<?> root = cq.from(entityType);
+			cq.select(root);
+
+			List<Predicate> predicates = new ArrayList<>();
+
+			// Match the identifier if it's set on the example CFC
 			if (!Util.isEmpty(idName)) {
 				Object idValue = scope.get(CommonUtil.createKey(idName), null);
 				if (idValue != null) {
-					criteria.add(Restrictions.eq(idName, HibernateCaster.toSQL(idType, idValue, null)));
+					predicates.add(cb.equal(root.get(idName), HibernateCaster.toSQL(idType, idValue, null)));
 				}
 			}
-			criteria.add(Example.create(cfc));
 
-			// execute
+			// Manual query-by-example: equal predicate for every non-null property other than id/version.
+			// Replaces Hibernate 5.x Example.create() (removed in 7.x).
+			String[] propNames = metaData.getPropertyNames();
+			for (String propName : propNames) {
+				if (propName.equals(idName)) continue;
+				Object value = scope.get(CommonUtil.createKey(propName), null);
+				if (value == null) continue;
+				if (!(value instanceof Component)) {
+					Type propType = HibernateUtil.getPropertyType(metaData, propName, null);
+					value = HibernateCaster.toSQL(propType, value, null);
+				}
+				predicates.add(cb.equal(root.get(propName), value));
+			}
 
-			if (!unique) {
-				rtn = criteria.list();
-			}
-			else {
-				// Map map=(Map) criteria.uniqueResult();
-				rtn = criteria.uniqueResult();
-			}
+			if (!predicates.isEmpty()) cq.where(predicates.toArray(new Predicate[0]));
+
+			SelectionQuery<Object> q = sess.createSelectionQuery(cq);
+			return unique ? q.uniqueResult() : q.getResultList();
 		}
 		catch (Exception e) {
-			// trans.rollback();
 			throw CommonUtil.toPageException(e);
 		}
-		// trans.commit();
-
-		return rtn;
 	}
 
 	private Object load(PageContext pc, String cfcName, Struct filter, Struct options, String order, boolean unique) throws PageException {
@@ -886,103 +902,87 @@ public class HibernateORMSession implements ORMSession {
 		Session sess = getSession(pc, dsn);
 
 		String name = HibernateCaster.getEntityName(cfc);
+		SessionFactoryImplementor sfi = (SessionFactoryImplementor) sess.getSessionFactory();
 		EntityPersister metaData = null;
 
-		Object rtn;
 		try {
-			Criteria criteria = sess.createCriteria(name);
+			CriteriaBuilder cb = sess.getCriteriaBuilder();
+			CriteriaQuery<Object> cq = cb.createQuery();
+			EntityDomainType<?> entityType = sfi.getJpaMetamodel().entity(name);
+			Root<?> root = cq.from(entityType);
+			cq.select(root);
 
 			// filter
 			if (filter != null && !filter.isEmpty()) {
-				metaData = ((SessionFactoryImplementor) sess.getSessionFactory()).getMappingMetamodel().findEntityDescriptor(name);
-				Object value;
-				Entry<Key, Object> entry;
+				metaData = sfi.getMappingMetamodel().findEntityDescriptor(name);
+				List<Predicate> predicates = new ArrayList<>();
 				Iterator<Entry<Key, Object>> it = filter.entryIterator();
-				String colName;
 				while (it.hasNext()) {
-					entry = it.next();
-					colName = HibernateUtil.validateColumnName(metaData, CommonUtil.toString(entry.getKey()));
+					Entry<Key, Object> entry = it.next();
+					String colName = HibernateUtil.validateColumnName(metaData, CommonUtil.toString(entry.getKey()));
 					Type type = HibernateUtil.getPropertyType(metaData, colName, null);
-					value = entry.getValue();
+					Object value = entry.getValue();
 					if (!(value instanceof Component)) value = HibernateCaster.toSQL(type, value, null);
-
-					if (value != null) criteria.add(Restrictions.eq(colName, value));
-					else criteria.add(Restrictions.isNull(colName));
+					predicates.add(value != null ? cb.equal(root.get(colName), value) : cb.isNull(root.get(colName)));
 				}
+				if (!predicates.isEmpty()) cq.where(predicates.toArray(new Predicate[0]));
 			}
 
 			// options
 			boolean ignoreCase = false;
+			int offset = 0;
+			int max = -1;
+			Boolean cacheable = null;
+			int timeout = -1;
 			if (options != null && !options.isEmpty()) {
-				// ignorecase
 				Boolean ignorecase = CommonUtil.toBoolean(options.get("ignorecase", null), null);
 				if (ignorecase != null) ignoreCase = ignorecase.booleanValue();
 
-				// offset
-				int offset = CommonUtil.toIntValue(options.get("offset", null), 0);
-				if (offset > 0) criteria.setFirstResult(offset);
-
-				// maxResults
-				int max = CommonUtil.toIntValue(options.get("maxresults", null), -1);
-				if (max > -1) criteria.setMaxResults(max);
-
-				// cacheable
-				Boolean cacheable = CommonUtil.toBoolean(options.get("cacheable", null), null);
-				if (cacheable != null) criteria.setCacheable(cacheable.booleanValue());
-
-				// MUST cacheName ?
-
-				// maxResults
-				int timeout = CommonUtil.toIntValue(options.get("timeout", null), -1);
-				if (timeout > -1) criteria.setTimeout(timeout);
+				offset = CommonUtil.toIntValue(options.get("offset", null), 0);
+				max = CommonUtil.toIntValue(options.get("maxresults", null), -1);
+				cacheable = CommonUtil.toBoolean(options.get("cacheable", null), null);
+				timeout = CommonUtil.toIntValue(options.get("timeout", null), -1);
 			}
 
 			// order
 			if (!Util.isEmpty(order)) {
-				if (metaData == null) metaData = ((SessionFactoryImplementor) sess.getSessionFactory()).getMappingMetamodel().findEntityDescriptor(name);
+				if (metaData == null) metaData = sfi.getMappingMetamodel().findEntityDescriptor(name);
 
 				String[] arr = CommonUtil.toStringArray(order, ",");
 				CommonUtil.trimItems(arr);
-				String[] parts;
-				String col;
-				boolean isDesc;
-				Order _order;
-				// ColumnInfo ci;
+				List<Order> orders = new ArrayList<>();
 				for (int i = 0; i < arr.length; i++) {
-					parts = CommonUtil.toStringArray(arr[i], " \t\n\b\r");
+					String[] parts = CommonUtil.toStringArray(arr[i], " \t\n\b\r");
 					CommonUtil.trimItems(parts);
-					col = parts[0];
-
-					col = HibernateUtil.validateColumnName(metaData, col);
-					isDesc = false;
+					String col = HibernateUtil.validateColumnName(metaData, parts[0]);
+					boolean isDesc = false;
 					if (parts.length > 1) {
 						if (parts[1].equalsIgnoreCase("desc")) isDesc = true;
 						else if (!parts[1].equalsIgnoreCase("asc")) {
 							throw ExceptionUtil.createException((ORMSession) null, null, "Invalid order direction definition [" + parts[1] + "]", "valid values are [asc, desc]");
 						}
-
 					}
-					_order = isDesc ? Order.desc(col) : Order.asc(col);
-					if (ignoreCase) _order.ignoreCase();
-
-					criteria.addOrder(_order);
-
+					Path<?> path = root.get(col);
+					Expression<?> expr = ignoreCase && CharSequence.class.isAssignableFrom(path.getJavaType())
+							? cb.lower(path.as(String.class))
+							: path;
+					orders.add(isDesc ? cb.desc(expr) : cb.asc(expr));
 				}
+				if (!orders.isEmpty()) cq.orderBy(orders);
 			}
 
-			// execute
-			if (!unique) {
-				rtn = HibernateCaster.toCFML(criteria.list());
-			}
-			else {
-				rtn = HibernateCaster.toCFML(criteria.uniqueResult());
-			}
+			SelectionQuery<Object> q = sess.createSelectionQuery(cq);
+			if (offset > 0) q.setFirstResult(offset);
+			if (max > -1) q.setMaxResults(max);
+			if (cacheable != null) q.setCacheable(cacheable.booleanValue());
+			if (timeout > -1) q.setTimeout(timeout);
 
+			Object rtn = unique ? q.uniqueResult() : q.getResultList();
+			return HibernateCaster.toCFML(rtn);
 		}
 		catch (Exception e) {
 			throw CommonUtil.toPageException(e);
 		}
-		return rtn;
 	}
 
 	@Override
