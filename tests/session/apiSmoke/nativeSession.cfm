@@ -15,13 +15,14 @@ factoryClass = factory.getClass().getName();
 if ( factoryClass does not contain "hibernate" )
 	throw( message="expected hibernate factory class, got #factoryClass#" );
 
-// Verify getClassMetadata works
-md = factory.getClassMetadata( "SmokeEntity" );
-if ( isNull( md ) )
-	throw( message="getClassMetadata should return metadata for SmokeEntity" );
+// Hibernate 7 removed SessionFactory.getClassMetadata(name); replacement is the
+// MappingMetamodel via the SessionFactoryImplementor cast.
+descriptor = factory.getMappingMetamodel().findEntityDescriptor( "SmokeEntity" );
+if ( isNull( descriptor ) )
+	throw( message="findEntityDescriptor should return metadata for SmokeEntity" );
 
-// Verify we can get property names from metadata
-propNames = md.getPropertyNames();
+// Verify we can get property names from the entity descriptor
+propNames = descriptor.getPropertyNames();
 if ( !isArray( propNames ) || arrayLen( propNames ) == 0 )
 	throw( message="expected property names array" );
 
