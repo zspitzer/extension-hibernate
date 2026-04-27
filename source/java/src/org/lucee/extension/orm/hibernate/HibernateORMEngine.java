@@ -258,7 +258,7 @@ public class HibernateORMEngine implements ORMEngine {
 			if (data.getConfiguration(e.getKey()) != null) continue;
 
 			try {
-				data.setConfiguration(log, e.getValue(), data.getDataSource(e.getKey()), null, null, appContext == null ? "" : appContext.getName(), logSettings.formatSQL);
+				data.setConfiguration(log, e.getValue(), data.getDataSource(e.getKey()), null, null, logSettings.formatSQL);
 			}
 			catch (Exception ex) {
 				throw CommonUtil.toPageException(ex);

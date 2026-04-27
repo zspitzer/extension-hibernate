@@ -233,11 +233,11 @@ public class SessionFactoryData {
 	}
 
 	public void setConfiguration(Log log, String mappings, DataSource ds, String user, String pass,
-			String applicationContextName, boolean formatSQL) throws PageException, SQLException, IOException {
+			boolean formatSQL) throws PageException, SQLException, IOException {
 
 		Configuration configuration = new ConfigurationBuilder().withDatasource(ds).withDatasourceCreds(user, pass)
 				.withORMConfig(getORMConfiguration()).withEventListener(getEventListenerIntegrator())
-				.withApplicationName(applicationContextName).withXMLMappings(mappings).withFormatSQL(formatSQL)
+				.withXMLMappings(mappings).withFormatSQL(formatSQL)
 				.withLog(log).build();
 		configurations.put(CommonUtil.toKey(ds.getName()), new DataSourceConfig(ds, configuration));
 		HibernateSessionFactory.schemaExport(log, configuration, mappings, ds, user, pass, this);
