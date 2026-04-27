@@ -24,8 +24,9 @@ import org.hibernate.criterion.Example;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.engine.query.spi.HQLQueryPlan;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.SessionFactoryImpl;
-import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.query.Query;
 import org.hibernate.query.internal.ParameterMetadataImpl;
 import org.hibernate.type.Type;
@@ -334,7 +335,7 @@ public class HibernateORMSession implements ORMSession {
 		if (dsn == null) dsn = CommonUtil.toKey(CommonUtil.getDataSourceName(pc, cfc));
 		data.checkExistent(pc, cfc);
 		try {
-			getSession(pc, dsn).delete(HibernateCaster.getEntityName(cfc), cfc);
+			getSession(pc, dsn).remove(cfc);
 		}
 		catch (Exception e) {
 			throw CommonUtil.toPageException(e);
@@ -369,8 +370,8 @@ public class HibernateORMSession implements ORMSession {
 		 */
 		try {
 			Session session = getSession(pc, dsn);
-			if (forceInsert) session.save(name, cfc);
-			else session.saveOrUpdate(name, cfc);
+			if (forceInsert) session.persist(name, cfc);
+			else session.merge(name, cfc);
 		}
 		catch (Exception e) {
 			throw ExceptionUtil.createException(this, null, e);
@@ -812,10 +813,10 @@ public class HibernateORMSession implements ORMSession {
 		String name = HibernateCaster.getEntityName(cfc);
 		Object obj = null;
 		try {
-			ClassMetadata metaData = sess.getSessionFactory().getClassMetadata(name);
+			EntityPersister metaData = ((SessionFactoryImplementor) sess.getSessionFactory()).getMappingMetamodel().findEntityDescriptor(name);
 			if (metaData == null) throw ExceptionUtil.createException(this, null, "Could not load meta information for entity [" + name + "]", null);
 			Serializable oId = CommonUtil.toSerializable(CommonUtil.castTo(pc, metaData.getIdentifierType().getReturnedClass(), id));
-			obj = sess.get(name, oId);
+			obj = sess.find(name, oId);
 		}
 		catch (Exception e) {
 			throw CommonUtil.toPageException(e);
@@ -847,7 +848,7 @@ public class HibernateORMSession implements ORMSession {
 		try {
 			// trans.begin();
 
-			ClassMetadata metaData = sess.getSessionFactory().getClassMetadata(name);
+			EntityPersister metaData = ((SessionFactoryImplementor) sess.getSessionFactory()).getMappingMetamodel().findEntityDescriptor(name);
 			String idName = metaData.getIdentifierPropertyName();
 			Type idType = metaData.getIdentifierType();
 
@@ -885,7 +886,7 @@ public class HibernateORMSession implements ORMSession {
 		Session sess = getSession(pc, dsn);
 
 		String name = HibernateCaster.getEntityName(cfc);
-		ClassMetadata metaData = null;
+		EntityPersister metaData = null;
 
 		Object rtn;
 		try {
@@ -893,7 +894,7 @@ public class HibernateORMSession implements ORMSession {
 
 			// filter
 			if (filter != null && !filter.isEmpty()) {
-				metaData = sess.getSessionFactory().getClassMetadata(name);
+				metaData = ((SessionFactoryImplementor) sess.getSessionFactory()).getMappingMetamodel().findEntityDescriptor(name);
 				Object value;
 				Entry<Key, Object> entry;
 				Iterator<Entry<Key, Object>> it = filter.entryIterator();
@@ -938,7 +939,7 @@ public class HibernateORMSession implements ORMSession {
 
 			// order
 			if (!Util.isEmpty(order)) {
-				if (metaData == null) metaData = sess.getSessionFactory().getClassMetadata(name);
+				if (metaData == null) metaData = ((SessionFactoryImplementor) sess.getSessionFactory()).getMappingMetamodel().findEntityDescriptor(name);
 
 				String[] arr = CommonUtil.toStringArray(order, ",");
 				CommonUtil.trimItems(arr);

@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.hibernate.HibernateException;
 import org.hibernate.boot.Metadata;
+import org.hibernate.boot.spi.BootstrapContext;
 import org.hibernate.engine.internal.Nullability;
 import org.hibernate.engine.internal.Nullability.NullabilityCheckType;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
@@ -110,8 +111,8 @@ public class EventListenerIntegrator implements Integrator, PreInsertEventListen
 	private Component GlobalEventListener;
 
 	@Override
-	public void integrate(Metadata metadata, SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry) {
-		EventListenerRegistry eventListenerRegistry = serviceRegistry.getService(EventListenerRegistry.class);
+	public void integrate(Metadata metadata, BootstrapContext bootstrapContext, SessionFactoryImplementor sessionFactory) {
+		EventListenerRegistry eventListenerRegistry = sessionFactory.getServiceRegistry().getService(EventListenerRegistry.class);
 
 		eventListenerRegistry.prependListeners(EventType.PRE_INSERT, this);
 		eventListenerRegistry.prependListeners(EventType.POST_INSERT, this);
@@ -174,8 +175,8 @@ public class EventListenerIntegrator implements Integrator, PreInsertEventListen
 		persistEntityChangesToState(stateValues, propertyNames, entityCFC);
 
 		// Validate nullability after state sync
-		new Nullability(event.getSession())
-		    .checkNullability(stateValues, event.getPersister(), NullabilityCheckType.CREATE);
+		new Nullability(event.getSession(), NullabilityCheckType.CREATE)
+		    .checkNullability(stateValues, event.getPersister());
 
 		return false;
 	}
@@ -216,8 +217,8 @@ public class EventListenerIntegrator implements Integrator, PreInsertEventListen
 		persistEntityChangesToState(stateValues, propertyNames, entityCFC);
 
 		// Validate nullability after state sync
-		new Nullability(event.getSession())
-		    .checkNullability(stateValues, event.getPersister(), NullabilityCheckType.CREATE);
+		new Nullability(event.getSession(), NullabilityCheckType.CREATE)
+		    .checkNullability(stateValues, event.getPersister());
 
 		return false;
 	}

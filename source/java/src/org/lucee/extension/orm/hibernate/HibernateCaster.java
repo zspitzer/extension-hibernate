@@ -15,7 +15,8 @@ import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.collection.spi.PersistentCollection;
-import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
 
 import lucee.commons.lang.types.RefBoolean;
@@ -570,7 +571,7 @@ public class HibernateCaster {
 		// init
 		if (qry == null) {
 			SessionFactory factory = session.getRawSessionFactory(dsn);
-			ClassMetadata md = factory.getClassMetadata(getEntityName(cfc));
+			EntityPersister md = ((SessionFactoryImplementor) factory).getMappingMetamodel().findEntityDescriptor(getEntityName(cfc));
 			Array names = CommonUtil.createArray();
 			Array types = CommonUtil.createArray();
 			String name;
