@@ -6,7 +6,6 @@ import org.lucee.extension.orm.hibernate.util.HibernateUtil;
 import org.lucee.extension.orm.hibernate.util.ORMConfigurationUtil;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.sql.Connection;
@@ -21,13 +20,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.hibernate.boot.Metadata;
-import org.hibernate.boot.MetadataSources;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.service.ServiceRegistry;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -99,50 +94,10 @@ public class HibernateSessionFactory {
 				configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "update");
 				return;
 			case 5 /* DBCREATE_VALIDATE */:
-				// Hibernate's SchemaValidator silently passes when catalog/schema are null
-				// (HHH-10882). Do our own JDBC-based table existence check instead.
 				configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "validate");
-				ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build();
-				MetadataSources metadataSources = new MetadataSources(serviceRegistry);
-				metadataSources.addInputStream(new ByteArrayInputStream(xmlMappings.getBytes("UTF-8")));
-				validateSchema(metadataSources.buildMetadata(), serviceRegistry);
 				return;
 			default:
 				return;
-		}
-	}
-
-	/**
-	 * JDBC-based schema validation. Checks that every physical table in the Hibernate metadata
-	 * actually exists in the database. Works around Hibernate 5.6's SchemaValidator silently
-	 * passing when default_catalog/default_schema are null (HHH-10882).
-	 */
-	private static void validateSchema(Metadata metadata, ServiceRegistry serviceRegistry) throws SQLException {
-		ConnectionProvider cp = serviceRegistry.getService(ConnectionProvider.class);
-		Connection conn = cp.getConnection();
-		try {
-			java.sql.DatabaseMetaData dbMeta = conn.getMetaData();
-			String catalog = conn.getCatalog();
-			for (org.hibernate.boot.model.relational.Namespace ns : metadata.getDatabase().getNamespaces()) {
-				for (org.hibernate.mapping.Table table : ns.getTables()) {
-					if (!table.isPhysicalTable()) continue;
-					String tableName = table.getName();
-					java.sql.ResultSet rs = dbMeta.getTables(catalog, null, tableName, new String[] { "TABLE" });
-					try {
-						if (!rs.next()) {
-							throw new org.hibernate.tool.schema.spi.SchemaManagementException(
-								"Schema-validation: missing table [" + tableName + "]"
-							);
-						}
-					}
-					finally {
-						rs.close();
-					}
-				}
-			}
-		}
-		finally {
-			cp.closeConnection(conn);
 		}
 	}
 
