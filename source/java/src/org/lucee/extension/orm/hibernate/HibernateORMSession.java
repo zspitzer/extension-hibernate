@@ -374,8 +374,27 @@ public class HibernateORMSession implements ORMSession {
 		 */
 		try {
 			Session session = getSession(pc, dsn);
-			if (forceInsert) session.persist(name, cfc);
-			else session.merge(name, cfc);
+			// Hibernate 7.x removed saveOrUpdate/update. The naive replacement
+			// is merge(), but merge returns a NEW attached copy and leaves the
+			// caller's reference detached — which breaks CFML semantics where
+			// entityReload(sink) is called on the same reference after save.
+			// persist() attaches the caller's reference for transient entities.
+			// For already-attached entities it's a no-op (dirty-checking will
+			// flush updates). Detached entities (id set, not in session) are
+			// rare in practice — fall back to merge for them.
+			if (forceInsert) {
+				session.persist(name, cfc);
+			} else if (session.contains(cfc)) {
+				// already attached — dirty-checking handles updates at flush
+			} else {
+				try {
+					session.persist(name, cfc);
+				} catch (jakarta.persistence.PersistenceException pe) {
+					// detached (id is set, not transient) — merge writes through
+					// to DB but does not re-attach the caller's reference
+					session.merge(name, cfc);
+				}
+			}
 		}
 		catch (Exception e) {
 			throw ExceptionUtil.createException(this, null, e);
