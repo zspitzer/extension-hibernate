@@ -104,23 +104,16 @@ public class HibernateSessionFactory {
 	/**
 	 * Auto-detect and set default catalog/schema from JDBC metadata if not already configured.
 	 *
-	 * Hibernate's SchemaUpdate uses DatabaseMetaData.getTables() to find existing tables.
-	 * When default_catalog/default_schema are not set, it passes empty strings as filters
-	 * (AbstractInformationExtractorImpl lines 527, 552), which on some databases (H2 v2)
-	 * returns no results — causing SchemaUpdate to silently generate no DDL.
+	 * NOT CURRENTLY CALLED — kept for the embedded warning. If you are tempted to
+	 * call this from schemaExport(): don't. Setting DEFAULT_CATALOG on the Configuration's
+	 * Properties leaks into the session factory's SQL generation, prefixing all table
+	 * names with the catalog (e.g. DB.foo), which breaks MySQL/MSSQL. A Properties copy
+	 * doesn't fully isolate because the ServiceRegistry builder may mutate the input map.
 	 *
-	 * NOT CURRENTLY CALLED — blocked by two issues:
-	 * 1. HHH-10882: Hibernate 5.6 doesn't flow DEFAULT_CATALOG/DEFAULT_SCHEMA through
-	 *    to the AbstractInformationExtractorImpl.getTables() call, so setting them doesn't
-	 *    actually fix the empty-string filter problem.
-	 * 2. Setting DEFAULT_CATALOG on the Configuration's Properties leaks into the session
-	 *    factory's SQL generation, prefixing all table names with the catalog (e.g. DB.foo),
-	 *    which breaks MySQL/MSSQL. A Properties copy doesn't fully isolate because the
-	 *    ServiceRegistry builder may mutate the input map.
-	 *
-	 * The real fix is patching Hibernate's AbstractInformationExtractorImpl to use null
-	 * instead of "" when no catalog/schema filter is configured. Since we ship a shaded
-	 * Hibernate jar, this could be done as a direct patch.
+	 * Original motivation was HHH-10882 (H2 SchemaUpdate silently generating no DDL when
+	 * default_catalog/default_schema were unset). That bug was fixed in Hibernate 7.3,
+	 * so this approach is no longer needed for that case. The SQL-prefix problem is a
+	 * separate Hibernate behaviour and remains.
 	 *
 	 * @see <a href="https://hibernate.atlassian.net/browse/HHH-10882">HHH-10882</a>
 	 */
