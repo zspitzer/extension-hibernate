@@ -10,8 +10,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
         <build.timestamp>${maven.build.timestamp}</build.timestamp>
         <bundlename>org.lucee.hibernate.extension</bundlename>
@@ -66,41 +66,15 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Hibernate core (pulls antlr, dom4j, hibernate-commons-annotations transitively) -->
+        <!-- Hibernate core 7.3.2 (Jakarta namespace, brings byte-buddy 1.18 transitively).
+             Classmate dropped in 7.3, jboss-transaction exclusion no longer relevant. -->
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>5.6.15.Final</version>
-            <exclusions>
-                <!-- Use simple JTA, not JBoss spec (needs javax.interceptor) -->
-                <exclusion>
-                    <groupId>org.jboss.spec.javax.transaction</groupId>
-                    <artifactId>jboss-transaction-api_1.2_spec</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>7.3.2.Final</version>
         </dependency>
 
-        <!-- Simple JTA (no javax.interceptor dependency) -->
-        <dependency>
-            <groupId>javax.transaction</groupId>
-            <artifactId>jta</artifactId>
-            <version>1.1</version>
-        </dependency>
-
-        <!-- Hibernate EHCache integration -->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-ehcache</artifactId>
-            <version>5.6.15.Final</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>net.sf.ehcache</groupId>
-                    <artifactId>ehcache</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- EHCache (Lucee repackaged — specific package structure required) -->
+        <!-- EHCache (Lucee repackaged — kept for now, replaced by hibernate-jcache in Stage 5) -->
         <dependency>
             <groupId>net.sf.ehcache.internal</groupId>
             <artifactId>ehcache-core</artifactId>
@@ -114,13 +88,12 @@
             <version>1.7.36</version>
         </dependency>
 
-        <!-- Bean Validation API (Hibernate 5.6's TypeSafeActivator has hard javax.validation
-             imports — Lucee 7+ exposes jakarta.validation via boot delegation, Hibernate
-             thinks BV is available, then fails loading the javax classes) -->
+        <!-- JBoss Logging — runtime in Hibernate 7.3, but our LuceeJBossLogger bridge
+             needs it at compile time. -->
         <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>1.1.0.Final</version>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>3.6.1.Final</version>
         </dependency>
 
         <!-- JAXB (needed for Hibernate XML mapping) -->
@@ -282,7 +255,7 @@
                                         <Built-Date>${build.timestamp}</Built-Date>
                                         <!-- Required: Hibernate's Version.getVersionString() reads this at runtime.
                                              Without it, the shaded jar reports [WORKING] instead of the real version. -->
-                                        <Implementation-Version>5.6.15.Final</Implementation-Version>
+                                        <Implementation-Version>7.3.2.Final</Implementation-Version>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
