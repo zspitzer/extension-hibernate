@@ -2,20 +2,17 @@ package org.lucee.extension.orm.hibernate;
 import org.lucee.extension.orm.hibernate.mapping.HBMCreator;
 
 import org.lucee.extension.orm.hibernate.util.CommonUtil;
-import org.lucee.extension.orm.hibernate.util.ExceptionUtil;
 import org.lucee.extension.orm.hibernate.util.HibernateUtil;
 import org.lucee.extension.orm.hibernate.util.ORMConfigurationUtil;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,10 +28,6 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.hibernate.tool.hbm2ddl.SchemaExport.Action;
-import org.hibernate.tool.hbm2ddl.SchemaUpdate;
-import org.hibernate.tool.schema.TargetType;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -85,65 +78,37 @@ public class HibernateSessionFactory {
 			throws PageException, SQLException, IOException {
 		ORMConfiguration ormConf = data.getORMConfiguration();
 
-		ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build();
-
-		MetadataSources metadataSources = new MetadataSources(serviceRegistry);
-		metadataSources.addInputStream(new ByteArrayInputStream(xmlMappings.getBytes("UTF-8")));
-		EnumSet<TargetType> enumSet = EnumSet.of(TargetType.DATABASE);
-
-		if (ORMConfiguration.DBCREATE_NONE == ormConf.getDbCreate()) {
-			configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "none");
-			return;
-		}
-		else if (ORMConfiguration.DBCREATE_DROP_CREATE == ormConf.getDbCreate()) {
-			configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "create");
-			Metadata metadata = metadataSources.buildMetadata();
-			// DROP phase — errors are expected (objects may not exist yet, dialects vary
-			// on IF EXISTS support). Log but never throw.
-			SchemaExport drop = new SchemaExport();
-			drop.setHaltOnError(false);
-			drop.execute(enumSet, Action.DROP, metadata);
-			printError(log, data, drop.getExceptions(), false);
-			// CREATE phase — errors here are real failures.
-			SchemaExport create = new SchemaExport();
-			create.setHaltOnError(false);
-			create.execute(enumSet, Action.CREATE, metadata);
-			printError(log, data, create.getExceptions(), true);
-		}
-		else if (/* ORMConfiguration.DBCREATE_CREATE */3 == ormConf.getDbCreate()) {
-			configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "create-only");
-			SchemaExport export = new SchemaExport();
-			export.setHaltOnError(false);
-			export.execute(enumSet, Action.CREATE, metadataSources.buildMetadata());
-			printError(log, data, export.getExceptions(), true);
-		}
-		else if (/* ORMConfiguration.DBCREATE_CREATE_DROP */4 == ormConf.getDbCreate()) {
-			configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "create-drop");
-			Metadata metadata = metadataSources.buildMetadata();
-			// DROP phase — errors are expected.
-			SchemaExport drop = new SchemaExport();
-			drop.setHaltOnError(false);
-			drop.execute(enumSet, Action.DROP, metadata);
-			printError(log, data, drop.getExceptions(), false);
-			// CREATE phase — errors here are real failures.
-			SchemaExport create = new SchemaExport();
-			create.setHaltOnError(false);
-			create.execute(enumSet, Action.CREATE, metadata);
-			printError(log, data, create.getExceptions(), true);
-		}
-		else if (ORMConfiguration.DBCREATE_UPDATE == ormConf.getDbCreate()) {
-			configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "update");
-			SchemaUpdate update = new SchemaUpdate();
-			update.setHaltOnError(false);
-			update.execute(enumSet, metadataSources.buildMetadata());
-			printError(log, data, update.getExceptions(), true);
-		}
-		else if (/* ORMConfiguration.DBCREATE_VALIDATE */5 == ormConf.getDbCreate()) {
-			configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "validate");
-			Metadata metadata = metadataSources.buildMetadata();
-			// Hibernate 5.6's SchemaValidator silently passes when catalog/schema are null
-			// (HHH-10882). Do our own JDBC-based table existence check instead.
-			validateSchema(metadata, serviceRegistry);
+		// Hibernate 7 removed the standalone SchemaExport / SchemaUpdate execute() entry points
+		// (the org.hibernate.tool.hbm2ddl package moved out of hibernate-core). We now just set
+		// HBM2DDL_AUTO and let buildSessionFactory() drive schema work via the standard
+		// SchemaManagementTool — same end result, no separate boot-time export pass.
+		switch (ormConf.getDbCreate()) {
+			case ORMConfiguration.DBCREATE_NONE:
+				configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "none");
+				return;
+			case ORMConfiguration.DBCREATE_DROP_CREATE:
+				configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "create");
+				return;
+			case 3 /* DBCREATE_CREATE */:
+				configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "create-only");
+				return;
+			case 4 /* DBCREATE_CREATE_DROP */:
+				configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "create-drop");
+				return;
+			case ORMConfiguration.DBCREATE_UPDATE:
+				configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "update");
+				return;
+			case 5 /* DBCREATE_VALIDATE */:
+				// Hibernate's SchemaValidator silently passes when catalog/schema are null
+				// (HHH-10882). Do our own JDBC-based table existence check instead.
+				configuration.setProperty(AvailableSettings.HBM2DDL_AUTO, "validate");
+				ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties()).build();
+				MetadataSources metadataSources = new MetadataSources(serviceRegistry);
+				metadataSources.addInputStream(new ByteArrayInputStream(xmlMappings.getBytes("UTF-8")));
+				validateSchema(metadataSources.buildMetadata(), serviceRegistry);
+				return;
+			default:
+				return;
 		}
 	}
 
@@ -244,23 +209,6 @@ public class HibernateSessionFactory {
 		} catch (Exception e) {
 			log.log(Log.LEVEL_WARN, "hibernate", "Failed to auto-detect default catalog/schema: " + e.getMessage());
 		}
-	}
-
-	private static void printError(Log log, SessionFactoryData data, List<Exception> exceptions, boolean throwException) throws PageException {
-		if (exceptions == null || exceptions.isEmpty()) return;
-
-		for (Exception e : exceptions) {
-			log.log(throwException ? Log.LEVEL_ERROR : Log.LEVEL_DEBUG, "hibernate",
-					"schema export" + (throwException ? "" : " (ignored)") + ": " + e.getMessage());
-		}
-
-		if (!throwException) return;
-
-		// throw a clean exception with the message from the first error
-		// (avoid wrapping the deep Hibernate cause chain which can trigger StackOverflow in Lucee's exception serialization)
-		String msg = exceptions.get(0).getMessage();
-		if (msg == null) msg = exceptions.get(0).toString();
-		throw ExceptionUtil.createException(data, null, msg, null);
 	}
 
 	/**
