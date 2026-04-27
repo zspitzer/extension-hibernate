@@ -6,7 +6,6 @@ import java.sql.Types;
 import java.util.Map;
 
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.LazyInitializer;
@@ -74,14 +73,9 @@ public class CFCGetter implements Getter {
 		return null;
 	}
 
-	// was used in previous versions, we keep it just in case
-	public Object getForInsert(Object trg, Map map, SessionImplementor si) throws HibernateException {
-		return get(trg);// MUST better solution? this is from MapGetter
-	}
-
 	@Override
-	public Object getForInsert(Object trg, Map map, SharedSessionContractImplementor ssci) {
-		return get(trg);// MUST better solution? this is from MapGetter
+	public Object getForInsert(Object trg, Map<Object, Object> map, SharedSessionContractImplementor ssci) {
+		return get(trg);
 	}
 
 	@Override
@@ -100,8 +94,13 @@ public class CFCGetter implements Getter {
 	}
 
 	@Override
-	public Class getReturnType() {
-		return Object.class;// MUST more concrete?
+	public Class<?> getReturnTypeClass() {
+		return Object.class;
+	}
+
+	@Override
+	public java.lang.reflect.Type getReturnType() {
+		return Object.class;
 	}
 
 }

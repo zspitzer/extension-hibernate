@@ -14,10 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.hibernate.EntityMode;
-import org.hibernate.tuple.entity.EntityTuplizerFactory;
 import org.lucee.extension.orm.hibernate.event.EventListenerIntegrator;
-import org.lucee.extension.orm.hibernate.tuplizer.AbstractEntityTuplizerImpl;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -271,9 +268,8 @@ public class HibernateORMEngine implements ORMEngine {
 			 */
 			addEventListeners(pc, data, e.getKey());
 
-			EntityTuplizerFactory tuplizerFactory = data.getConfiguration(e.getKey()).config.getEntityTuplizerFactory();
-			tuplizerFactory.registerDefaultTuplizerClass(EntityMode.MAP, AbstractEntityTuplizerImpl.class);
-			tuplizerFactory.registerDefaultTuplizerClass(EntityMode.POJO, AbstractEntityTuplizerImpl.class);
+			// CFC entity representation is installed via CFCMetadataBuilderInitializer
+			// (META-INF/services hook) — see Stage 3 in h73-migration-status.md.
 
 			data.buildSessionFactory(e.getKey());
 		}
