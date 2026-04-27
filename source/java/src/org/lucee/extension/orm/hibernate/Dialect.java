@@ -103,15 +103,18 @@ public class Dialect {
 		dialects.setEL(CommonUtil.createKey("MariaDB"), "org.hibernate.dialect.MariaDBDialect");
 		dialects.setEL(CommonUtil.createKey("Mckoi"), "org.hibernate.dialect.MckoiDialect");
 		dialects.setEL(CommonUtil.createKey("MimerSQL"), "org.hibernate.dialect.MimerSQLDialect");
-		dialects.setEL(CommonUtil.createKey("MySQL55"), "org.hibernate.dialect.MySQL55Dialect");
-		dialects.setEL(CommonUtil.createKey("MySQL57"), "org.hibernate.dialect.MySQL57Dialect");
-		dialects.setEL(CommonUtil.createKey("MySQL57InnoDB"), "org.hibernate.dialect.MySQL57InnoDBDialect");
-		dialects.setEL(CommonUtil.createKey("MySQL5"), "org.hibernate.dialect.MySQL5Dialect");
-		dialects.setEL(CommonUtil.createKey("MySQL5InnoDB"), "org.hibernate.dialect.MySQL5InnoDBDialect");
-		dialects.setEL(CommonUtil.createKey("MySQL8"), "org.hibernate.dialect.MySQL8Dialect");
-		dialects.setEL(CommonUtil.createKey("MySQL"), "org.hibernate.dialect.MySQL8Dialect");
-		dialects.setEL(CommonUtil.createKey("MySQLInnoDB"), "org.hibernate.dialect.MySQLInnoDBDialect");
-		dialects.setEL(CommonUtil.createKey("MySQLMyISAM"), "org.hibernate.dialect.MySQLMyISAMDialect");
+		// Hibernate 7.x removed all version-specific MySQL dialects; MySQLDialect now
+		// auto-detects the server version via JDBC metadata. All historical aliases
+		// resolve to the same class — version detection happens at SF build.
+		dialects.setEL(CommonUtil.createKey("MySQL55"), "org.hibernate.dialect.MySQLDialect");
+		dialects.setEL(CommonUtil.createKey("MySQL57"), "org.hibernate.dialect.MySQLDialect");
+		dialects.setEL(CommonUtil.createKey("MySQL57InnoDB"), "org.hibernate.dialect.MySQLDialect");
+		dialects.setEL(CommonUtil.createKey("MySQL5"), "org.hibernate.dialect.MySQLDialect");
+		dialects.setEL(CommonUtil.createKey("MySQL5InnoDB"), "org.hibernate.dialect.MySQLDialect");
+		dialects.setEL(CommonUtil.createKey("MySQL8"), "org.hibernate.dialect.MySQLDialect");
+		dialects.setEL(CommonUtil.createKey("MySQL"), "org.hibernate.dialect.MySQLDialect");
+		dialects.setEL(CommonUtil.createKey("MySQLInnoDB"), "org.hibernate.dialect.MySQLDialect");
+		dialects.setEL(CommonUtil.createKey("MySQLMyISAM"), "org.hibernate.dialect.MySQLDialect");
 		dialects.setEL(CommonUtil.createKey("Oracle10g"), "org.hibernate.dialect.Oracle10gDialect");
 		dialects.setEL(CommonUtil.createKey("Oracle12c"), "org.hibernate.dialect.Oracle12cDialect");
 		dialects.setEL(CommonUtil.createKey("Oracle8i"), "org.hibernate.dialect.Oracle8iDialect");
