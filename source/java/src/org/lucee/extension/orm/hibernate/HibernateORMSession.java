@@ -19,14 +19,12 @@ import org.hibernate.QueryException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.engine.query.spi.HQLQueryPlan;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.metamodel.model.domain.EntityDomainType;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.query.ParameterMetadata;
 import org.hibernate.query.Query;
 import org.hibernate.query.SelectionQuery;
-import org.hibernate.query.internal.ParameterMetadataImpl;
 import org.hibernate.type.Type;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -597,81 +595,51 @@ public class HibernateORMSession implements ORMSession {
 		}
 
 		// params
+		// Stage 7 spike (Option A): bind without explicit Hibernate Type hints — trust H7.3
+		// SQM type inference + JPA binding-side coercion. CFML entity properties always carry
+		// ormtype declarations, so SQM has full slot-type information from the metamodel. If
+		// specific tests (tests/session/hqlParams) reveal coercion gaps, restore targeted casts.
 		if (params != null) {
-			HQLQueryPlan plan = ((SessionFactoryImpl) session.getSessionFactory()).getQueryPlanCache().getHQLQueryPlan(hql, false, java.util.Collections.EMPTY_MAP);
+			ParameterMetadata meta = query.getParameterMetadata();
 
-			ParameterMetadataImpl meta = plan.getParameterMetadata();
-			Type type;
-			Object obj;
-
-			// struct
+			// struct (named params)
 			if (CommonUtil.isStruct(params)) {
 				Struct sct = CommonUtil.toStruct(params);
-				String name;
-				// fix case-senstive
+				// case-fix: CFML keys are case-insensitive, Hibernate names are case-sensitive.
+				// Map struct keys to actual parameter names declared in the query.
 				Struct names = CommonUtil.createStruct();
-				if (meta != null) {
-					Iterator<String> it = meta.getNamedParameterNames().iterator();
-					while (it.hasNext()) {
-						name = it.next();
-						names.setEL(name, name);
-					}
+				for (String n : meta.getNamedParameterNames()) {
+					names.setEL(n, n);
 				}
 
-				RefBoolean isArray = CommonUtil.createRefBoolean();
 				Iterator<Entry<Key, Object>> it = sct.entryIterator();
-				Entry<Key, Object> e;
 				while (it.hasNext()) {
-					e = it.next();
-					obj = sct.get(e.getKey(), null);
-					if (meta != null) {
-						name = (String) names.get(e.getKey(), null);
-						if (name == null) continue; // param not needed will be ignored
-						type = meta.getNamedParameterDescriptor(name).getExpectedType();
-						if (type==null)	throw ExceptionUtil.createException(this, null, "Could not get type for ORM parameter [" + e.getKey() 
-							+ "], entity names are case sensitive!" , null);
-						
-						obj = HibernateCaster.toSQL(type, obj, isArray);
-						if (isArray.toBooleanValue()) {
-							if (obj instanceof Object[]) query.setParameterList(name, (Object[]) obj, type);
-							else if (obj instanceof List) query.setParameterList(name, (List) obj, type);
-							else query.setParameterList(name, CFMLEngineFactory.getInstance().getCastUtil().toList(obj), type);
-						}
-						else query.setParameter(name, obj, type);
-
-					}
-					else query.setParameter(e.getKey().getString(), obj);
+					Entry<Key, Object> e = it.next();
+					String name = (String) names.get(e.getKey(), null);
+					if (name == null) continue; // unused param — ignored
+					Object value = sct.get(e.getKey(), null);
+					if (value instanceof Object[]) query.setParameterList(name, (Object[]) value);
+					else if (value instanceof java.util.Collection) query.setParameterList(name, (java.util.Collection<?>) value);
+					else query.setParameter(name, value);
 				}
 			}
 
-			// array
+			// array (ordinal params)
 			else if (isParamArray) {
 				Array arr = CommonUtil.toArray(params);
 
-				if (meta.getOrdinalParameterCount() > arr.size()) throw ExceptionUtil.createException(this, null,
-						"parameter array is to small [" + arr.size() + "], need [" + meta.getOrdinalParameterCount() + "] elements", null);
+				int ordinalCount = meta.getOrdinalParameterLabels().size();
+				if (ordinalCount > arr.size()) throw ExceptionUtil.createException(this, null,
+						"Parameter array is too small [" + arr.size() + "], need [" + ordinalCount + "] elements", null);
 
-				Iterator it = arr.valueIterator();
+				Iterator<?> it = arr.valueIterator();
 				int idx = 1;
-				SQLItem item;
-				RefBoolean isArray = null;
-
 				while (it.hasNext()) {
-					type = null;
-					obj = it.next();
-					if (obj instanceof SQLItem) {
-						item = (SQLItem) obj;
-						obj = item.getValue();
-					}
-					if (meta != null) {
-						type = meta.getOrdinalParameterExpectedType(idx);
-					}
-
-					if (type != null) query.setParameter(idx, HibernateCaster.toSQL(type, obj, isArray), type);
-					else query.setParameter(idx, obj);
+					Object value = it.next();
+					if (value instanceof SQLItem) value = ((SQLItem) value).getValue();
+					query.setParameter(idx, value);
 					idx++;
 				}
-
 			}
 		}
 

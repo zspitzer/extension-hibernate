@@ -18,8 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.hibernate.cfg.Configuration;
 import org.hibernate.SessionFactory;
-import org.hibernate.engine.query.spi.QueryPlanCache;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.lucee.extension.orm.hibernate.event.EventListenerIntegrator;
 import org.lucee.extension.orm.hibernate.jdbc.DataSourceConfig;
 import org.lucee.extension.orm.hibernate.naming.CFCNamingStrategy;
@@ -52,7 +50,6 @@ public class SessionFactoryData {
 	private final Map<Key, Map<String, CFCInfo>> cfcs = new ConcurrentHashMap<Key, Map<String, CFCInfo>>();
 	private final Map<Key, DataSourceConfig> configurations = new ConcurrentHashMap<Key, DataSourceConfig>();
 	private final Map<Key, SessionFactory> factories = new ConcurrentHashMap<Key, SessionFactory>();
-	private final Map<Key, QueryPlanCache> queryPlanCaches = new ConcurrentHashMap<Key, QueryPlanCache>();
 
 	private final ORMConfiguration ormConf;
 	private NamingStrategy namingStrategy;
@@ -87,15 +84,6 @@ public class SessionFactoryData {
 
 	public HibernateORMEngine getEngine() {
 		return engine;
-	}
-
-	public QueryPlanCache getQueryPlanCache(Key datasSourceName) {
-		QueryPlanCache qpc = queryPlanCaches.get(datasSourceName);
-		if (qpc == null) {
-			qpc = ((SessionFactoryImpl) this.getFactory(datasSourceName)).getQueryPlanCache();
-			queryPlanCaches.put(datasSourceName, qpc);
-		}
-		return qpc;
 	}
 
 	public NamingStrategy getNamingStrategy() throws PageException {
