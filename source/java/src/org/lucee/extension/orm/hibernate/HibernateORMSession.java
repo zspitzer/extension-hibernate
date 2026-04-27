@@ -470,8 +470,8 @@ public class HibernateORMSession implements ORMSession {
 		entityName = correctCaseEntityName(entityName);
 
 		SessionFactory f = getSessionFactoryForEntity( pc, entityName );
-		if (id == null) f.getCache().evictEntityRegion(entityName);
-		else f.getCache().evictEntity(entityName, CommonUtil.toSerializable(id));
+		if (id == null) f.getCache().evictEntityData(entityName);
+		else f.getCache().evictEntityData(entityName, CommonUtil.toSerializable(id));
 	}
 
 	/**
@@ -508,8 +508,8 @@ public class HibernateORMSession implements ORMSession {
 		String role = entityName + "." + collectionName;
 
 		SessionFactory f = getSessionFactoryForEntity( pc, entityName );
-		if (id == null) f.getCache().evictCollectionRegion(role);
-		else f.getCache().evictCollection(role, CommonUtil.toSerializable(id));
+		if (id == null) f.getCache().evictCollectionData(role);
+		else f.getCache().evictCollectionData(role, CommonUtil.toSerializable(id));
 	}
 
 	@Override
