@@ -77,78 +77,91 @@ public class Dialect {
 
 		// Oracle — Oracle8i/9/9i/10g/12c all gone, only OracleDialect survives
 		String oracle = "org.hibernate.dialect.OracleDialect";
-		dialects.setEL(CommonUtil.createKey("Oracle8i"), oracle);
-		dialects.setEL(CommonUtil.createKey("Oracle9"), oracle);
-		dialects.setEL(CommonUtil.createKey("Oracle9i"), oracle);
-		dialects.setEL(CommonUtil.createKey("Oracle10g"), oracle);
-		dialects.setEL(CommonUtil.createKey("Oracle12c"), oracle);
-		dialects.setEL(CommonUtil.createKey("DataDirectOracle9"), oracle);
+		addLegacyAlias("Oracle8i", oracle);
+		addLegacyAlias("Oracle9", oracle);
+		addLegacyAlias("Oracle9i", oracle);
+		addLegacyAlias("Oracle10g", oracle);
+		addLegacyAlias("Oracle12c", oracle);
+		addLegacyAlias("DataDirectOracle9", oracle);
 
 		// SQLServer — 2005/2008/2012 all gone, only SQLServerDialect survives
 		String sqlServer = "org.hibernate.dialect.SQLServerDialect";
-		dialects.setEL(CommonUtil.createKey("SQLServer2005"), sqlServer);
-		dialects.setEL(CommonUtil.createKey("SQLServer2008"), sqlServer);
-		dialects.setEL(CommonUtil.createKey("SQLServer2012"), sqlServer);
+		addLegacyAlias("SQLServer2005", sqlServer);
+		addLegacyAlias("SQLServer2008", sqlServer);
+		addLegacyAlias("SQLServer2012", sqlServer);
 
 		// PostgreSQL — 81/82/9/91/92/93/94/95/10 all gone, only PostgreSQLDialect survives
 		String postgres = "org.hibernate.dialect.PostgreSQLDialect";
-		dialects.setEL(CommonUtil.createKey("PostgreSQL81"), postgres);
-		dialects.setEL(CommonUtil.createKey("PostgreSQL82"), postgres);
-		dialects.setEL(CommonUtil.createKey("PostgreSQL9"), postgres);
-		dialects.setEL(CommonUtil.createKey("PostgreSQL91"), postgres);
-		dialects.setEL(CommonUtil.createKey("PostgreSQL92"), postgres);
-		dialects.setEL(CommonUtil.createKey("PostgreSQL93"), postgres);
-		dialects.setEL(CommonUtil.createKey("PostgreSQL94"), postgres);
-		dialects.setEL(CommonUtil.createKey("PostgreSQL95"), postgres);
-		dialects.setEL(CommonUtil.createKey("PostgreSQL10"), postgres);
+		addLegacyAlias("PostgreSQL81", postgres);
+		addLegacyAlias("PostgreSQL82", postgres);
+		addLegacyAlias("PostgreSQL9", postgres);
+		addLegacyAlias("PostgreSQL91", postgres);
+		addLegacyAlias("PostgreSQL92", postgres);
+		addLegacyAlias("PostgreSQL93", postgres);
+		addLegacyAlias("PostgreSQL94", postgres);
+		addLegacyAlias("PostgreSQL95", postgres);
+		addLegacyAlias("PostgreSQL10", postgres);
 
 		// MySQL — every version-specific dialect gone, only MySQLDialect survives (Stage 7h)
 		String mysql = "org.hibernate.dialect.MySQLDialect";
-		dialects.setEL(CommonUtil.createKey("MySQL5"), mysql);
-		dialects.setEL(CommonUtil.createKey("MySQL55"), mysql);
-		dialects.setEL(CommonUtil.createKey("MySQL57"), mysql);
-		dialects.setEL(CommonUtil.createKey("MySQL5InnoDB"), mysql);
-		dialects.setEL(CommonUtil.createKey("MySQL57InnoDB"), mysql);
-		dialects.setEL(CommonUtil.createKey("MySQL8"), mysql);
-		dialects.setEL(CommonUtil.createKey("MySQLInnoDB"), mysql);
-		dialects.setEL(CommonUtil.createKey("MySQLMyISAM"), mysql);
+		addLegacyAlias("MySQL5", mysql);
+		addLegacyAlias("MySQL55", mysql);
+		addLegacyAlias("MySQL57", mysql);
+		addLegacyAlias("MySQL5InnoDB", mysql);
+		addLegacyAlias("MySQL57InnoDB", mysql);
+		addLegacyAlias("MySQL8", mysql);
+		addLegacyAlias("MySQLInnoDB", mysql);
+		addLegacyAlias("MySQLMyISAM", mysql);
 
 		// MariaDB — 10/53/102/103 all gone, only MariaDBDialect survives
 		String mariaDb = "org.hibernate.dialect.MariaDBDialect";
-		dialects.setEL(CommonUtil.createKey("MariaDB10"), mariaDb);
-		dialects.setEL(CommonUtil.createKey("MariaDB53"), mariaDb);
-		dialects.setEL(CommonUtil.createKey("MariaDB102"), mariaDb);
-		dialects.setEL(CommonUtil.createKey("MariaDB103"), mariaDb);
+		addLegacyAlias("MariaDB10", mariaDb);
+		addLegacyAlias("MariaDB53", mariaDb);
+		addLegacyAlias("MariaDB102", mariaDb);
+		addLegacyAlias("MariaDB103", mariaDb);
 
 		// Sybase — Sybase11 / SybaseAnywhere gone; SybaseASE15/157 collapse to SybaseASEDialect
 		String sybaseAse = "org.hibernate.dialect.SybaseASEDialect";
-		dialects.setEL(CommonUtil.createKey("SybaseASE15"), sybaseAse);
-		dialects.setEL(CommonUtil.createKey("SybaseASE157"), sybaseAse);
+		addLegacyAlias("SybaseASE15", sybaseAse);
+		addLegacyAlias("SybaseASE157", sybaseAse);
 		String sybase = "org.hibernate.dialect.SybaseDialect";
-		dialects.setEL(CommonUtil.createKey("Sybase11"), sybase);
-		dialects.setEL(CommonUtil.createKey("SybaseAnywhere"), sybase);
+		addLegacyAlias("Sybase11", sybase);
+		addLegacyAlias("SybaseAnywhere", sybase);
 
 		// HANA — Cloud/Column/Row variants gone, only HANADialect survives
 		String hana = "org.hibernate.dialect.HANADialect";
-		dialects.setEL(CommonUtil.createKey("HANACloudColumnStore"), hana);
-		dialects.setEL(CommonUtil.createKey("HANAColumnStore"), hana);
-		dialects.setEL(CommonUtil.createKey("HANARowStore"), hana);
+		addLegacyAlias("HANACloudColumnStore", hana);
+		addLegacyAlias("HANAColumnStore", hana);
+		addLegacyAlias("HANARowStore", hana);
 
 		// DB2 — DB2390(V8) → DB2zDialect, DB2400(V7R3) → DB2iDialect, DB297 → DB2Dialect
 		String db2 = "org.hibernate.dialect.DB2Dialect";
 		String db2i = "org.hibernate.dialect.DB2iDialect";
 		String db2z = "org.hibernate.dialect.DB2zDialect";
-		dialects.setEL(CommonUtil.createKey("DB297"), db2);
-		dialects.setEL(CommonUtil.createKey("DB2390"), db2z);
-		dialects.setEL(CommonUtil.createKey("DB2390V8"), db2z);
-		dialects.setEL(CommonUtil.createKey("DB2400"), db2i);
-		dialects.setEL(CommonUtil.createKey("DB2400V7R3"), db2i);
+		addLegacyAlias("DB297", db2);
+		addLegacyAlias("DB2390", db2z);
+		addLegacyAlias("DB2390V8", db2z);
+		addLegacyAlias("DB2400", db2i);
+		addLegacyAlias("DB2400V7R3", db2i);
 
 		// Cockroach — CockroachDB192/201 gone, only CockroachDialect survives
 		String cockroach = "org.hibernate.dialect.CockroachDialect";
-		dialects.setEL(CommonUtil.createKey("CockroachDB192"), cockroach);
-		dialects.setEL(CommonUtil.createKey("CockroachDB201"), cockroach);
+		addLegacyAlias("CockroachDB192", cockroach);
+		addLegacyAlias("CockroachDB201", cockroach);
 
+	}
+
+	/**
+	 * Register a legacy alias under both its short form and its FQN form.
+	 *
+	 * Both <code>"MySQL5InnoDB"</code> and <code>"org.hibernate.dialect.MySQL5InnoDBDialect"</code>
+	 * resolve to the same surviving target. The OSGi auto-scan above only registers FQNs
+	 * for classes that still exist in hibernate-core; users migrating from H5 who hard-coded
+	 * the FQN of a since-removed dialect would otherwise see their setting silently dropped.
+	 */
+	private static void addLegacyAlias(String shortName, String target) {
+		dialects.setEL(CommonUtil.createKey(shortName), target);
+		dialects.setEL(CommonUtil.createKey("org.hibernate.dialect." + shortName + "Dialect"), target);
 	}
 
 	/**
