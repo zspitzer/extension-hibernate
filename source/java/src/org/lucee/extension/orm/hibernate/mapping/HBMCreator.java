@@ -1706,10 +1706,11 @@ public class HBMCreator {
 		str = toString(cfc, prop, meta, "fetch", data);
 		if (!Util.isEmpty(str, true)) {
 			str = str.trim().toLowerCase();
+			String tagName = x2x.getNodeName();
+			boolean isCollection = "bag".equals(tagName) || "set".equals(tagName) || "list".equals(tagName) || "map".equals(tagName);
 			if ("join".equals(str) || "select".equals(str)) x2x.setAttribute("fetch", str);
-			else throw invalidValue(cfc, prop, "fetch", str, "join,select", data);
-			// throw new ORMException("invalid value ["+str+"] for attribute [fetch], valid values are
-			// [join,select]");
+			else if ("subselect".equals(str) && isCollection) x2x.setAttribute("fetch", str);
+			else throw invalidValue(cfc, prop, "fetch", str, isCollection ? "join,select,subselect" : "join,select", data);
 		}
 
 		// lazy
