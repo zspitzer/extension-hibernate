@@ -16,12 +16,16 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.hibernate.FlushMode;
+import org.hibernate.LockMode;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.QueryException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.engine.spi.Status;
 import org.hibernate.generator.Generator;
 import org.hibernate.metamodel.model.domain.EntityDomainType;
 import org.hibernate.persister.entity.EntityPersister;
@@ -392,13 +396,59 @@ public class HibernateORMSession implements ORMSession {
 			} else if (session.contains(cfc)) {
 				// already attached — dirty-checking handles updates at flush
 			} else {
-				try {
-					session.persist(name, cfc);
-					persisted = true;
-				} catch (org.hibernate.PersistentObjectException | jakarta.persistence.EntityExistsException pe) {
-					// detached (id is set, not transient) — merge writes through
-					// to DB but does not re-attach the caller's reference
+				// H7 removed saveOrUpdate. We replicate it via the same internals that
+				// merge() uses, but WITHOUT the copy-to-new-instance step — the caller's
+				// reference must remain the canonical managed entity so subsequent
+				// entityReload(cfc) / refresh / dirty-check semantics keep working.
+				//
+				// persister.isTransient() returns:
+				//   - TRUE  → entity is new, persist() is correct
+				//   - FALSE → entity is detached, merge it
+				//   - null  → undecidable (this is the common case for assigned-id with
+				//             unsavedvalue="" — H7's HBM parser silently drops empty
+				//             unsaved-value at ModelBinder.java:623, so the persister has
+				//             no strategy and returns null). Issue a snapshot SELECT to
+				//             disambiguate, then either persist (no row) or reattach
+				//             (row exists) by injecting cfc into the persistence context
+				//             as MANAGED with the loaded snapshot.
+				SharedSessionContractImplementor sessionImpl = (SharedSessionContractImplementor) session;
+				EntityPersister persister = ((SessionFactoryImplementor) session.getSessionFactory())
+						.getMappingMetamodel().findEntityDescriptor(name);
+				Boolean isTransient = persister == null ? null : persister.isTransient(cfc, sessionImpl);
+				Object id = persister == null ? null : persister.getIdentifier(cfc, sessionImpl);
+				boolean idLooksSet = id != null && !"".equals(String.valueOf(id));
+
+				if (Boolean.FALSE.equals(isTransient)) {
+					// definitely detached — merge writes through but caller's reference stays detached
 					session.merge(name, cfc);
+				} else if (isTransient == null && idLooksSet && persister != null) {
+					Object[] snapshot = persister.getDatabaseSnapshot(id, sessionImpl);
+					if (snapshot == null) {
+						// row not in DB — INSERT, caller's reference attaches
+						session.persist(name, cfc);
+						persisted = true;
+					} else {
+						// row exists — reattach cfc as MANAGED with the loaded snapshot.
+						// dirty-checking will issue UPDATE on flush against this snapshot.
+						EntityKey key = sessionImpl.generateEntityKey(id, persister);
+						Object dbVersion = null;
+						if (persister.isVersioned()) {
+							int vp = persister.getVersionPropertyIndex();
+							if (vp >= 0 && vp < snapshot.length) dbVersion = snapshot[vp];
+						}
+						sessionImpl.getPersistenceContextInternal().addEntity(
+								cfc, Status.MANAGED, snapshot, key, dbVersion,
+								LockMode.NONE, true, persister, false);
+					}
+				} else {
+					// transient (TRUE) or undecidable with no id — persist; fall back to merge
+					// if Hibernate throws a known detached-entity exception immediately.
+					try {
+						session.persist(name, cfc);
+						persisted = true;
+					} catch (org.hibernate.PersistentObjectException | jakarta.persistence.EntityExistsException pe) {
+						session.merge(name, cfc);
+					}
 				}
 			}
 
