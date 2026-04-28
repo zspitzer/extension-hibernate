@@ -80,6 +80,33 @@ public class HBMCreator {
 	private static final Collection.Key TYPE = CommonUtil.createKey("type");
 
 	/**
+	 * Translate H5 cascade tokens that Hibernate 7 no longer accepts. The {@code save-update}
+	 * cascade was removed alongside the {@code saveOrUpdate} operation it referenced; the
+	 * closest behavioural equivalent is {@code persist,merge} (covers the new-entity and
+	 * detached-reattach cases). Synonym forms recognised by {@link HibernateCaster#cascade}
+	 * but never previously emitted correctly are translated too — they gain the function
+	 * they were always meant to have.
+	 *
+	 * @param cascade comma-separated cascade list as declared on the CFC property
+	 * @return cascade list with H7-incompatible tokens rewritten in place
+	 */
+	private static String translateCascade(String cascade) {
+		if (cascade.indexOf("save") < 0) return cascade;
+		String[] tokens = cascade.split(",");
+		StringBuilder out = new StringBuilder(cascade.length() + 16);
+		for (int i = 0; i < tokens.length; i++) {
+			String t = tokens[i].trim().toLowerCase();
+			if (i > 0) out.append(",");
+			if ("save-update".equals(t) || "save_update".equals(t) || "saveupdate".equals(t)) {
+				out.append("persist,merge");
+			} else {
+				out.append(tokens[i]);
+			}
+		}
+		return out.toString();
+	}
+
+	/**
 	 * Generate an XML node tree defining a Hibernate mapping for the given Component
 	 *
 	 * @param pc
@@ -1673,7 +1700,7 @@ public class HBMCreator {
 
 		// cascade
 		String str = toString(cfc, prop, meta, "cascade", data);
-		if (!Util.isEmpty(str, true)) x2x.setAttribute("cascade", str);
+		if (!Util.isEmpty(str, true)) x2x.setAttribute("cascade", translateCascade(str));
 
 		// fetch
 		str = toString(cfc, prop, meta, "fetch", data);
