@@ -46,7 +46,15 @@ public class CFCInstantiator implements EntityInstantiator {
 	public Object instantiate() {
 		try {
 			Component cfc = (Component) template.duplicate(false);
-			if (hasInit) {
+			// Skip init() during SessionFactory build. H7.3 calls instantiate() from
+			// UnsavedValueFactory.inferUnsavedIdentifierValue while building the metamodel;
+			// if the entity's init() body touches a persistent property setter,
+			// Lucee's UDFSetterProperty._call resolves ORMUtil.getSession() which
+			// re-enters HibernateORMEngine.init() while we're still inside that call —
+			// recursion deepens until JAXB's StackHelper.getCallerClassName overflows.
+			// At runtime (post-build) the SF is cached and getSession() short-circuits,
+			// so init() runs without recursing — only the build-time call needs gating.
+			if (hasInit && SessionFactoryData.CURRENT_BUILDING.get() == null) {
 				PageContext pc = CommonUtil.pc();
 				cfc.call(pc, "init", EMPTY_ARGS);
 			}
