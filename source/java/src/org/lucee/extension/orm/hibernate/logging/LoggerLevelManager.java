@@ -16,8 +16,11 @@ import lucee.commons.io.log.Log;
 public class LoggerLevelManager {
 
 	private static final String	CAT_SQL		= "org.hibernate.SQL";
-	private static final String	CAT_PARAMS	= "org.hibernate.type.descriptor.sql";
-	private static final String	CAT_CACHE	= "org.hibernate.cache";
+	// H7 moved logging categories under org.hibernate.orm.* (SubSystemLogging.BASE).
+	// Param binding is org.hibernate.orm.jdbc.bind (JdbcBindingLogging),
+	// L2 cache is org.hibernate.orm.cache (SecondLevelCacheLogger).
+	private static final String	CAT_PARAMS	= "org.hibernate.orm.jdbc.bind";
+	private static final String	CAT_CACHE	= "org.hibernate.orm.cache";
 
 	private static final ThreadLocal<LoggingConfig> currentConfig = new ThreadLocal<>();
 
