@@ -9,11 +9,14 @@ if ( className does not contain "hibernate" )
 if ( !ormSess.isOpen() )
 	throw( message="ormSess should be open" );
 
-// Verify ORMGetSessionFactory returns native factory
+// Verify ORMGetSessionFactory returns Hibernate's SessionFactory. The runtime
+// class is a proxy (jdk.proxy*.$ProxyN) once the H7-compat shim is wrapping the
+// real factory, so check via the declared interfaces instead of the class name.
 factory = ORMGetSessionFactory();
-factoryClass = factory.getClass().getName();
-if ( factoryClass does not contain "hibernate" )
-	throw( message="expected hibernate factory class, got #factoryClass#" );
+factoryInterfaces = arrayMap( factory.getClass().getInterfaces(), function( iface ) { return iface.getName(); } );
+if ( !arrayContainsNoCase( factoryInterfaces, "org.hibernate.SessionFactory" )
+	&& !arrayContainsNoCase( factoryInterfaces, "org.hibernate.engine.spi.SessionFactoryImplementor" ) )
+	throw( message="expected factory to implement org.hibernate.SessionFactory(Implementor), got interfaces #serializeJSON( factoryInterfaces )#" );
 
 // Hibernate 7 removed SessionFactory.getClassMetadata(name); replacement is the
 // MappingMetamodel via the SessionFactoryImplementor cast.
