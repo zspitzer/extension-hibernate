@@ -391,6 +391,23 @@ public class HibernateORMSession implements ORMSession {
 			// rare in practice — fall back to merge for them.
 			boolean persisted = false;
 			if (forceInsert) {
+				// Pre-7.3 saveOrUpdate-with-forceInsert (and session.save) tolerated
+				// empty/sentinel ids on entities backed by a generator — the generator
+				// would assign a fresh id at insert. H7 silently drops unsaved-value=""
+				// at ModelBinder.java:623, and persist() rejects any non-null id as
+				// "Detached entity." For generated ids (UUID, sequence, IDENTITY —
+				// anything except `assigned`), an empty-string or null id is the
+				// "please assign me" sentinel — clear it explicitly so persist trusts us.
+				SharedSessionContractImplementor sessionImpl = (SharedSessionContractImplementor) session;
+				EntityPersister persister = ((SessionFactoryImplementor) session.getSessionFactory())
+						.getMappingMetamodel().findEntityDescriptor(name);
+				if (persister != null && persister.getGenerator() != null
+						&& persister.getGenerator().generatesOnInsert()) {
+					Object id = persister.getIdentifier(cfc, sessionImpl);
+					if (id == null || "".equals(String.valueOf(id))) {
+						persister.setIdentifier(cfc, null, sessionImpl);
+					}
+				}
 				session.persist(name, cfc);
 				persisted = true;
 			} else if (session.contains(cfc)) {
