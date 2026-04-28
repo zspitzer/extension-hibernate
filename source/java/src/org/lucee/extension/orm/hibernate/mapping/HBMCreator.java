@@ -95,27 +95,6 @@ public class HBMCreator {
 	 *
 	 * @throws PageException
 	 */
-	/**
-	 * Lowercases HBM identifier values (property name, entity name, FK target name) when
-	 * the {@code hqlCaseSensitive} ORM setting is false (the default). Paired with
-	 * {@link org.lucee.extension.orm.hibernate.util.HqlNormalizer} on the HQL side so
-	 * CFML's case-insensitive semantics survive Hibernate 7's strict identifier resolution.
-	 *
-	 * @param name HBM identifier value (property name, entity name, etc.); null returned as-is
-	 * @param data SessionFactoryData carrying the active ORM configuration
-	 * @return lowercased value when bridging is on, original case otherwise
-	 */
-	private static String hbmId(String name, SessionFactoryData data) {
-		if (name == null) return null;
-		// Stage 7l: HQL case-insensitive bridging is scaffolded but disabled. Turning on
-		// HBM-side lowercasing would require coordinating canonical-case entity names
-		// across every Hibernate session call (~8 files of downstream lookups). For now
-		// pass through unchanged; Stage 7m will wire it up with full coordination.
-		// To re-enable when ready: replace with
-		//   return ORMConfigurationUtil.isHqlCaseSensitive(CommonUtil.pc()) ? name : name.toLowerCase();
-		return name;
-	}
-
 	public static Element createXMLMapping(PageContext pc, DatasourceConnection dc, Component cfc, SessionFactoryData data) throws PageException {
 		Document doc = XMLUtil.newDocument();
 
@@ -555,7 +534,7 @@ public class HBMCreator {
 		// entity-name
 		String str = toString(cfc, null, meta, "entityname", data);
 		if (Util.isEmpty(str, true)) str = HibernateCaster.getEntityName(cfc);
-		clazz.setAttribute("entity-name", hbmId(str, data));
+		clazz.setAttribute("entity-name", str);
 
 		// batch-size
 		Integer i = toInteger(cfc, meta, "batchsize", data);
@@ -675,7 +654,7 @@ public class HBMCreator {
 			cid.appendChild(key);
 
 			// name
-			key.setAttribute("name", hbmId(prop.getName(), data));
+			key.setAttribute("name", prop.getName());
 
 			// column
 			Element column = doc.createElement("column");
@@ -707,7 +686,7 @@ public class HBMCreator {
 			cid.appendChild(key);
 
 			// name
-			key.setAttribute("name", hbmId(prop.getName(), data));
+			key.setAttribute("name", prop.getName());
 
 			// entity-name
 			setForeignEntityName(cfc, prop, meta, key, false, data);
@@ -734,7 +713,7 @@ public class HBMCreator {
 		if (!Util.isEmpty(str, true)) id.setAttribute("access", str);
 
 		// name
-		id.setAttribute("name", hbmId(prop.getName(), data));
+		id.setAttribute("name", prop.getName());
 
 		// column
 		Element column = doc.createElement("column");
@@ -930,7 +909,7 @@ public class HBMCreator {
 		clazz.appendChild(property);
 
 		// name
-		property.setAttribute("name", hbmId(prop.getName(), data));
+		property.setAttribute("name", prop.getName());
 
 		// type
 		String str = getType(info, cfc, prop, meta, "string", data);
@@ -1176,7 +1155,7 @@ public class HBMCreator {
 		setBeforeJoin(clazz, el);
 
 		// name
-		el.setAttribute("name", hbmId(prop.getName(), data));
+		el.setAttribute("name", prop.getName());
 
 		// table
 		str = toString(cfc, prop, meta, "table", true, data);
@@ -1545,7 +1524,7 @@ public class HBMCreator {
 		// entity
 		String str = cfcRequired ? null : toString(cfc, prop, meta, "entityName", data);
 		if (!Util.isEmpty(str, true)) {
-			el.setAttribute("entity-name", hbmId(str, data));
+			el.setAttribute("entity-name", str);
 		}
 		else {
 			// cfc
@@ -1555,7 +1534,7 @@ public class HBMCreator {
 			if (!Util.isEmpty(str, true)) {
 				Component _cfc = data.getEntityByCFCName(str, false);
 				str = HibernateCaster.getEntityName(_cfc);
-				el.setAttribute("entity-name", hbmId(str, data));
+				el.setAttribute("entity-name", str);
 			}
 		}
 	}
@@ -1690,7 +1669,7 @@ public class HBMCreator {
 	 * 
 	 */
 	private static void createXMLMappingXToX(Element x2x, PageContext pc, Component cfc, Property prop, Struct meta, SessionFactoryData data) throws PageException {
-		x2x.setAttribute("name", hbmId(prop.getName(), data));
+		x2x.setAttribute("name", prop.getName());
 
 		// cascade
 		String str = toString(cfc, prop, meta, "cascade", data);
@@ -1753,7 +1732,7 @@ public class HBMCreator {
 		Element timestamp = doc.createElement("timestamp");
 		clazz.appendChild(timestamp);
 
-		timestamp.setAttribute("name", hbmId(prop.getName(), data));
+		timestamp.setAttribute("name", prop.getName());
 
 		// access
 		str = toString(cfc, prop, meta, "access", data);
@@ -1802,7 +1781,7 @@ public class HBMCreator {
 		Element version = doc.createElement("version");
 		clazz.appendChild(version);
 
-		version.setAttribute("name", hbmId(prop.getName(), data));
+		version.setAttribute("name", prop.getName());
 
 		// column
 		String str = toString(cfc, prop, meta, "column", data);

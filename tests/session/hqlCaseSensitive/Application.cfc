@@ -1,14 +1,10 @@
 component {
-	param name="url.hqlCaseSensitive" default="false";
-
-	// app name varies by flag so ORM rebuilds when the flag flips between specs
-	this.name = "test-hqlCase-#hash( getCurrentTemplatePath() )#-#url.hqlCaseSensitive#";
-	this.datasource = server.getDatasource( "h2", server._getTempDir( "orm-hqlCase-#url.hqlCaseSensitive#" ) );
+	this.name = "test-hqlCase-#hash( getCurrentTemplatePath() )#";
+	this.datasource = server.getDatasource( "h2", server._getTempDir( "orm-hqlCase" ) );
 	this.ormEnabled = true;
 	this.ormSettings = {
 		dbcreate: "dropcreate",
-		cfclocation: [ getDirectoryFromPath( getCurrentTemplatePath() ) ],
-		hqlCaseSensitive: url.hqlCaseSensitive == "true"
+		cfclocation: [ getDirectoryFromPath( getCurrentTemplatePath() ) ]
 	};
 
 	function onRequestStart() {

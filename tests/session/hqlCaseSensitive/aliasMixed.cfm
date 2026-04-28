@@ -1,6 +1,5 @@
 <cfscript>
-// Alias chain `c.UserName` (entity case-correct, alias case preserved)
-// This must work in BOTH modes — exact-case HQL is always valid.
+// Exact-case alias chain `c.UserName` — happy path under H7.3+ strict identifier resolution.
 try {
 	result = ormExecuteQuery( "from Customer c where c.UserName = :n", { n: "BobBrown" } );
 	if ( !isArray( result ) || arrayLen( result ) != 1 )
