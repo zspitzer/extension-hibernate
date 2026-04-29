@@ -22,6 +22,10 @@ import org.hibernate.persister.entity.EntityPersister;
  *   <li>{@code getCollectionMetadata(role)} → {@code findCollectionDescriptor(role)}; throws
  *       {@link MappingException} for unknown role to match H5.6 semantics
  *       (H7's {@code findCollectionDescriptor} returns null instead).</li>
+ *   <li>{@code getEntityPersister(name)} → {@code findEntityDescriptor(name)}; H5 alias for
+ *       the same lookup as {@code getClassMetadata}, used by cborm SQLHelper / ORMUtilSupport
+ *       and ColdBox legacy ORM helpers. Throws {@link MappingException} for unknown name to
+ *       match H5.6 semantics.</li>
  * </ul>
  *
  * <p>Returns the same instance unchanged if it's already a CompatSessionFactory
@@ -75,6 +79,16 @@ public final class CompatSessionFactoryWrapper {
 					throw new MappingException("Could not locate CollectionPersister for role : " + role);
 				}
 				return cp;
+			}
+			if (paramCount == 1 && "getEntityPersister".equals(name) && method.getParameterTypes()[0] == String.class) {
+				String entityName = (String) args[0];
+				EntityPersister ep = ((SessionFactoryImplementor) delegate)
+						.getMappingMetamodel()
+						.findEntityDescriptor(entityName);
+				if (ep == null) {
+					throw new MappingException("Unknown entity: " + entityName);
+				}
+				return ep;
 			}
 
 			// delegate everything else to the real SessionFactory

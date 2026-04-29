@@ -30,4 +30,6 @@ public interface CompatSessionFactory extends SessionFactory {
 	EntityPersister getClassMetadata(String entityName);
 
 	CollectionPersister getCollectionMetadata(String collectionRole);
+
+	EntityPersister getEntityPersister(String entityName);
 }
