@@ -1,5 +1,7 @@
 package org.lucee.extension.orm.hibernate;
 
+import org.lucee.extension.orm.hibernate.logging.LoggerLevelManager;
+import org.lucee.extension.orm.hibernate.logging.OrmLoggingSettings;
 import org.lucee.extension.orm.hibernate.util.CommonUtil;
 import org.lucee.extension.orm.hibernate.util.ExceptionUtil;
 import org.lucee.extension.orm.hibernate.util.HibernateUtil;
@@ -52,6 +54,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.orm.ORMTransaction;
@@ -141,6 +144,11 @@ public class HibernateORMSession implements ORMSession {
 	public HibernateORMSession(PageContext pc, SessionFactoryData data) throws PageException {
 		this.data = data;
 		data.registerSession( this );
+		// Apply per-request logging config — settings can change without ormReload()
+		ORMConfiguration ormConf = pc.getApplicationContext().getORMConfiguration();
+		OrmLoggingSettings logSettings = OrmLoggingSettings.load( pc, ormConf );
+		LoggerLevelManager.configure( CommonUtil.getORMLog( pc ), logSettings.logSQL,
+		    logSettings.logParams, logSettings.logCache, logSettings.logVerbose );
 	}
 
 	/*
