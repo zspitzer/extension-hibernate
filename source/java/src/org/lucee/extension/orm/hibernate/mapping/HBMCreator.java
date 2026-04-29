@@ -10,6 +10,7 @@ import org.lucee.extension.orm.hibernate.util.ORMConfigurationUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -80,28 +81,28 @@ public class HBMCreator {
 	private static final Collection.Key TYPE = CommonUtil.createKey("type");
 
 	/**
-	 * Translate H5 cascade tokens that Hibernate 7 no longer accepts. The {@code save-update}
-	 * cascade was removed alongside the {@code saveOrUpdate} operation it referenced; the
-	 * closest behavioural equivalent is {@code persist,merge} (covers the new-entity and
-	 * detached-reattach cases). Synonym forms recognised by {@link HibernateCaster#cascade}
-	 * but never previously emitted correctly are translated too — they gain the function
-	 * they were always meant to have.
-	 *
-	 * @param cascade comma-separated cascade list as declared on the CFC property
-	 * @return cascade list with H7-incompatible tokens rewritten in place
+	 * Validate and translate cascade tokens before HBM emission. Accepts the 12 cascade tokens
+	 * native to Hibernate 7 plus {@code save-update} (rewritten to {@code persist,merge} for H7
+	 * compat — H7 removed save-update along with the saveOrUpdate operation it referenced).
+	 * Anything outside this allowlist (typos, the never-supported underscore/concat synonyms
+	 * once advertised by HibernateCaster.cascade) is rejected with a Lucee-level error before
+	 * Hibernate sees the mapping.
 	 */
-	private static String translateCascade(String cascade) {
-		if (cascade.indexOf("save") < 0) return cascade;
+	private static final String VALID_CASCADE_DISPLAY = "all, all-delete-orphan, save-update, delete, delete-orphan, persist, merge, lock, refresh, replicate, evict, remove, none";
+	private static final Set<String> VALID_CASCADE = new HashSet<>(Arrays.asList(
+		"all", "all-delete-orphan", "save-update", "delete", "delete-orphan",
+		"persist", "merge", "lock", "refresh", "replicate", "evict", "remove", "none"
+	));
+
+	private static String translateCascade(Component cfc, Property prop, String cascade, SessionFactoryData data) throws PageException {
 		String[] tokens = cascade.split(",");
 		StringBuilder out = new StringBuilder(cascade.length() + 16);
 		for (int i = 0; i < tokens.length; i++) {
 			String t = tokens[i].trim().toLowerCase();
+			if (!VALID_CASCADE.contains(t)) throw invalidValue(cfc, prop, "cascade", t, VALID_CASCADE_DISPLAY, data);
 			if (i > 0) out.append(",");
-			if ("save-update".equals(t) || "save_update".equals(t) || "saveupdate".equals(t)) {
-				out.append("persist,merge");
-			} else {
-				out.append(tokens[i]);
-			}
+			if ("save-update".equals(t)) out.append("persist,merge");
+			else out.append(t);
 		}
 		return out.toString();
 	}
@@ -1700,7 +1701,7 @@ public class HBMCreator {
 
 		// cascade
 		String str = toString(cfc, prop, meta, "cascade", data);
-		if (!Util.isEmpty(str, true)) x2x.setAttribute("cascade", translateCascade(str));
+		if (!Util.isEmpty(str, true)) x2x.setAttribute("cascade", translateCascade(cfc, prop, str, data));
 
 		// fetch
 		str = toString(cfc, prop, meta, "fetch", data);

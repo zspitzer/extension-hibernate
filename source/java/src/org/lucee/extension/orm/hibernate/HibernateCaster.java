@@ -110,36 +110,6 @@ public class HibernateCaster {
 		return name;
 	}
 
-	public static int cascade(ORMSession session, String cascade) throws PageException {
-		int c = cascade(cascade, -1);
-		if (c != -1) return c;
-		throw ExceptionUtil.createException(session, null,
-				"Invalid cascade definition [" + cascade + "], valid values are [all, all-delete-orphan, delete, delete-orphan, refresh, save-update]", null);
-	}
-
-	public static int cascade(String cascade, int defaultValue) {
-		cascade = cascade.trim().toLowerCase();
-		if ("all".equals(cascade)) return CFConstants.CASCADE_ALL;
-
-		if ("save-update".equals(cascade)) return CFConstants.CASCADE_SAVE_UPDATE;
-		if ("save_update".equals(cascade)) return CFConstants.CASCADE_SAVE_UPDATE;
-		if ("saveupdate".equals(cascade)) return CFConstants.CASCADE_SAVE_UPDATE;
-
-		if ("delete".equals(cascade)) return CFConstants.CASCADE_DELETE;
-
-		if ("delete-orphan".equals(cascade)) return CFConstants.CASCADE_DELETE_ORPHAN;
-		if ("delete_orphan".equals(cascade)) return CFConstants.CASCADE_DELETE_ORPHAN;
-		if ("deleteorphan".equals(cascade)) return CFConstants.CASCADE_DELETE_ORPHAN;
-
-		if ("all-delete-orphan".equals(cascade)) return CFConstants.CASCADE_ALL_DELETE_ORPHAN;
-		if ("all_delete_orphan".equals(cascade)) return CFConstants.CASCADE_ALL_DELETE_ORPHAN;
-		if ("alldeleteorphan".equals(cascade)) return CFConstants.CASCADE_ALL_DELETE_ORPHAN;
-
-		if ("refresh".equals(cascade)) return CFConstants.REFRESH;
-
-		return defaultValue;
-	}
-
 	public static int collectionType(ORMSession session, String strCollectionType) throws PageException {
 		int ct = collectionType(strCollectionType, -1);
 		if (ct != -1) return ct;
