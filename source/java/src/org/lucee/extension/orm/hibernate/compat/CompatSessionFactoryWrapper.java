@@ -48,6 +48,19 @@ public final class CompatSessionFactoryWrapper {
 				new Handler(real));
 	}
 
+	/**
+	 * Returns the underlying H7 SessionFactory if the input was produced by
+	 * {@link #wrap}, otherwise returns the input unchanged. Symmetric counterpart
+	 * to {@link #wrap} — useful for Java-side code (tests, future internal
+	 * consumers) that has a SessionFactory reference and wants the raw delegate.
+	 */
+	public static SessionFactory unwrap(SessionFactory sf) {
+		if (sf == null || !Proxy.isProxyClass(sf.getClass())) return sf;
+		InvocationHandler h = Proxy.getInvocationHandler(sf);
+		if (h instanceof Handler) return ((Handler) h).delegate;
+		return sf;
+	}
+
 	private static final class Handler implements InvocationHandler {
 
 		private final SessionFactory delegate;

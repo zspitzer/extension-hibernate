@@ -1,9 +1,13 @@
 <cfscript>
-// Verify ORMGetSession() returns native org.hibernate.Session (not a wrapper like ACF)
+// Verify ORMGetSession() returns Hibernate's Session. The runtime class is a
+// proxy (jdk.proxy*.$ProxyN) once the H7-compat shim is wrapping the real
+// session, so check via the declared interfaces instead of the class name —
+// same approach as the factory check below.
 ormSess = ORMGetSession();
-className = ormSess.getClass().getName();
-if ( className does not contain "hibernate" )
-	throw( message="expected hibernate ormSess class, got #className#" );
+sessInterfaces = arrayMap( ormSess.getClass().getInterfaces(), function( iface ) { return iface.getName(); } );
+if ( !arrayContainsNoCase( sessInterfaces, "org.hibernate.Session" )
+	&& !arrayContainsNoCase( sessInterfaces, "org.hibernate.engine.spi.SessionImplementor" ) )
+	throw( message="expected ormSess to implement org.hibernate.Session(Implementor), got interfaces #serializeJSON( sessInterfaces )#" );
 
 // Verify ormSess.isOpen()
 if ( !ormSess.isOpen() )
