@@ -21,9 +21,9 @@ Source: [`source/java/src/org/lucee/extension/orm/hibernate/compat/`](source/jav
 | Method | H7 routing | Notes |
 | ------ | ---------- | ----- |
 | `getDialect()` | `SFI.getJdbcServices().getDialect()` | Pass-through |
-| `getClassMetadata(String)` | `SFI.getMappingMetamodel().findEntityDescriptor(name)` | Returns `EntityPersister` (replaces deleted `ClassMetadata`); H5 returned null on unknown name, H7 also returns null — no translation needed |
+| `getClassMetadata(String)` | `SFI.getMappingMetamodel().findEntityDescriptor(name)`, wrapped in `CompatEntityPersisterWrapper` | Returns `EntityPersister` (replaces deleted `ClassMetadata`); H5 returned null on unknown name, H7 also returns null — no translation needed |
 | `getCollectionMetadata(String)` | `SFI.getMappingMetamodel().findCollectionDescriptor(role)` | Returns `CollectionPersister`; H5 throws `MappingException` on unknown, H7 returns null — shim translates null → `MappingException` |
-| `getEntityPersister(String)` | Same as `getClassMetadata` — `findEntityDescriptor(name)` | H5 alias used by cborm `SQLHelper`/`ORMUtilSupport` and ColdBox legacy ORM helpers; H5 throws on unknown — shim translates null → `MappingException` |
+| `getEntityPersister(String)` | Same as `getClassMetadata`, wrapped in `CompatEntityPersisterWrapper` | H5 alias used by cborm `SQLHelper`/`ORMUtilSupport` and ColdBox legacy ORM helpers; H5 throws on unknown — shim translates null → `MappingException` |
 
 ### Deliberately NOT shimmed
 
@@ -31,6 +31,16 @@ Source: [`source/java/src/org/lucee/extension/orm/hibernate/compat/`](source/jav
 - `getAllCollectionMetadata()` — same situation as above.
 - `getTypeHelper()` — zero observed callers (per `gh search code` survey). Anyone who needs it can use `sf.getTypeConfiguration().getBasicTypeRegistry()` directly.
 - ~30+ other internal SPI removals (`configuredInterceptor`, `getFastSessionServices`, `getNamedQueryRepository`, `registerNamedQueryDefinition`, etc.) — Hibernate-internal SPI that CFML applications don't reach for.
+
+## Currently shipped: `CompatEntityPersisterWrapper`
+
+Wraps the `EntityPersister` returned from the two SessionFactory metadata accessors above. Implemented as a `Proxy` declaring both `EntityPersister` (so type checks and the H7 surface keep working) and the synthetic `CompatEntityPersister` interface (legacy method overloads).
+
+Source: [`source/java/src/org/lucee/extension/orm/hibernate/compat/CompatEntityPersisterWrapper.java`](source/java/src/org/lucee/extension/orm/hibernate/compat/CompatEntityPersisterWrapper.java)
+
+| Method | H7 routing | Notes |
+| ------ | ---------- | ----- |
+| `getSubclassPropertyName(int)` | `getPropertyNames()[i]` | H7 demoted the int overload to `protected` on `AbstractEntityPersister` (`getSubclassPropertyNameClosure()`). cborm `BaseORMService.getDirtyPropertyNames` pairs this with `findModified(...)` (still public on H7) to map dirty-property indexes back to names. |
 
 ### Real-world callers (verified via `gh search code`)
 
@@ -46,14 +56,36 @@ Surveyed 2026-04-29 against public GitHub. The shimmed methods cover known calle
 
 Plus the corresponding test-harness apps under `coldbox-samples`, `coldbox-modules`, and many derivative apps that vendor copies of cborm or ColdBox ORM.
 
-## Planned: `CompatSessionWrapper`
+## Currently shipped: `CompatSessionWrapper`
 
-Spec'd but not yet implemented. Wraps the `Session` returned by `ormGetSession()`. Hybrid design:
+Wraps the `Session` returned by `ormGetSession()`. `Proxy` declaring both the synthetic `CompatSession` interface (legacy method names) and `SessionImplementor` (modern SPI).
 
-- **Hard-coded mechanical translations** — for families with deterministic JPA mappings (`save`/`update`/`saveOrUpdate`/`delete`/`load`/`refresh`/`createSQLQuery`/`getNamedSQLQuery`). Routes directly in Java, no consumer config needed.
-- **Plug-in CFC hook** — for `createCriteria` and similar opinionated surfaces where the H7 replacement is a wrapper API consumers want to control. Set `ormSettings.sessionShim` to a CFC path; the wrapper dispatches matching method names to that CFC.
+Source: [`source/java/src/org/lucee/extension/orm/hibernate/compat/CompatSessionWrapper.java`](source/java/src/org/lucee/extension/orm/hibernate/compat/CompatSessionWrapper.java)
 
-Empirical surface: **73 methods removed** from `Session` in H5.6 → H7.3, of which **32 across 9 families** are CFML-relevant. Spec lives in your tracker (`h73-session-shim-spec.md`).
+| Method family | H7 routing | Notes |
+| ------------- | ---------- | ----- |
+| `save(...)` | `persist(...)` then `getIdentifier(entity)` | H5 returned the generated id; reconstructed from the post-persist identifier so callers that store the return value still work |
+| `update(...)` | `merge(...)` | H5 returned void; `merge`'s managed-copy return value is dropped. Callers wanting the managed copy should call `merge` directly |
+| `saveOrUpdate(...)` | `persist` if `contains(entity)` is false, else `merge` | Detached entities are rare in CFML (request-scoped sessions); reattach-then-update flows should call `merge` directly. Documented in [BREAKING-CHANGES.md](BREAKING-CHANGES.md) |
+| `delete(...)` | `remove(entity)` | All three H5 overloads (entity, name+entity, SPI 4-arg) collapse to `remove` |
+| `refresh(entity, LockMode)` etc. | `refresh(entity, new LockOptions(LockMode))`; H5-only `(entityName, entity[, opts])` forms drop the entityName | H7 native `refresh` overloads pass through unchanged |
+| `createSQLQuery(String)` | `createNativeQuery(String)` | |
+| `getNamedSQLQuery(String)` | `createNamedQuery(String)` | Returns the JPA `Query` typed as `NativeQuery` for closest H5 shape |
+| `getEntityName(transient)` | Catch H7's `IllegalArgumentException` ("Given entity is not associated with the persistence context"), rethrow as `org.hibernate.TransientObjectException` | cborm `ObjectPopulator.getTargetName` depends on the exact `TransientObjectException` type to short-circuit transient detection. Implemented as a generic `InvocationTargetException` unwrap on the fall-through branch — without it, unchecked exceptions thrown by the delegate would surface as `UndeclaredThrowableException` to CFML callers |
+
+`load(...)` is intentionally not routed — see `CompatSession.java` for the rationale (zero real-world CFML callers, and H7's `load(Object, Object)` clashes with Lucee's overload dispatch).
+
+The `get(...)` family is not routed either — H7 keeps the `get(name, Object)` overloads, and Lucee dispatch resolves CFML calls to them automatically. Verified via `tests/compat/sessionApiSurface/getDispatch.cfm`.
+
+Empirical surface: **73 methods removed** from `Session` in H5.6 → H7.3, of which **32 across 9 families** are CFML-relevant. Of those families, 8 are mechanical (routed above); the 9th (`createCriteria`) is a plug-in family handled separately via `ormSettings.sessionShim`.
+
+## Currently shipped: HQL parameter coercion
+
+Not a wrapper — sits in `HibernateORMSession._executeQuery` ahead of the `query.setParameter(...)` calls. H7's `JdbcDateJavaType.wrap` rejects `String` inputs outright with "argument [X] is not assignable to java.util.Date", whereas H5 silently coerced via Lucee's caster on the bind side. cborm dynamic finders, ColdBox controllers, and any CFML caller that passes a user-typed date string (`"01/01/2009"`) hit this on every query.
+
+The fix coerces upfront: when the value is a `String` and the parameter's inferred slot type (via `ParameterMetadata.getInferredParameterType` / `QueryParameter.getParameterType`) is assignable from `java.util.Date`, run the value through `CommonUtil.toDate(...)` before binding. Other types pass through unchanged so non-date String params still bind as strings.
+
+Source: `coerceForBind(...)` in [`HibernateORMSession.java`](source/java/src/org/lucee/extension/orm/hibernate/HibernateORMSession.java).
 
 ## Methodology: the reflection dump
 

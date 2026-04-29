@@ -29,7 +29,9 @@ import org.hibernate.metamodel.model.domain.EntityDomainType;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.query.ParameterMetadata;
 import org.hibernate.query.Query;
+import org.hibernate.query.QueryParameter;
 import org.hibernate.query.SelectionQuery;
+import org.hibernate.type.BindableType;
 import org.hibernate.type.Type;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -733,7 +735,7 @@ public class HibernateORMSession implements ORMSession {
 					Object value = sct.get(e.getKey(), null);
 					if (value instanceof Object[]) query.setParameterList(name, (Object[]) value);
 					else if (value instanceof java.util.Collection) query.setParameterList(name, (java.util.Collection<?>) value);
-					else query.setParameter(name, value);
+					else query.setParameter(name, coerceForBind(value, meta.findQueryParameter(name), meta));
 				}
 			}
 
@@ -750,7 +752,7 @@ public class HibernateORMSession implements ORMSession {
 				while (it.hasNext()) {
 					Object value = it.next();
 					if (value instanceof SQLItem) value = ((SQLItem) value).getValue();
-					query.setParameter(idx, value);
+					query.setParameter(idx, coerceForBind(value, meta.findQueryParameter(idx), meta));
 					idx++;
 				}
 			}
@@ -767,6 +769,29 @@ public class HibernateORMSession implements ORMSession {
 		}
 		// update
 		return Double.valueOf(query.executeUpdate());
+	}
+
+	/**
+	 * H5 contract: callers (cborm dynamic finders, ColdBox controllers) routinely pass
+	 * CFML-typed date strings as HQL parameters and rely on Lucee/Hibernate string-to-date
+	 * autocoercion. H7's JdbcDateJavaType.wrap rejects String inputs outright with
+	 * "argument [X] is not assignable to java.util.Date", so the previous trust-the-engine
+	 * spike (Stage 7) leaves real-world apps broken at the bind site. When the parameter's
+	 * inferred slot type is Date-shaped and the value is a String, coerce up front via
+	 * Lucee's caster so SQM sees a value it can bind. Other types pass through unchanged.
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static Object coerceForBind(Object value, QueryParameter<?> qp, ParameterMetadata meta) throws PageException {
+		if (!(value instanceof String) || qp == null) return value;
+		Class<?> target = qp.getParameterType();
+		if (target == null) {
+			BindableType bt = meta.getInferredParameterType((QueryParameter) qp);
+			if (bt != null) target = bt.getJavaType();
+		}
+		if (target != null && java.util.Date.class.isAssignableFrom(target)) {
+			return CommonUtil.toDate(value, null);
+		}
+		return value;
 	}
 
 	private Object uniqueResult(Query<?> query) throws PageException {

@@ -1,6 +1,7 @@
 package org.lucee.extension.orm.hibernate.compat;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Map;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
+import org.hibernate.TransientObjectException;
 import org.hibernate.engine.spi.SessionImplementor;
 
 /**
@@ -187,7 +189,25 @@ public final class CompatSessionWrapper {
 			}
 
 			// Surviving H7 methods + Object.class methods (equals/hashCode/toString) pass through.
-			return method.invoke(delegate, args);
+			// Unwrap InvocationTargetException so unchecked exceptions propagate as-is
+			// (otherwise the Proxy infrastructure wraps the ITE in UndeclaredThrowableException
+			// because none of the interface methods declare checked exceptions).
+			try {
+				return method.invoke(delegate, args);
+			} catch (InvocationTargetException ite) {
+				Throwable cause = ite.getCause();
+				// H5 contract: getEntityName(transient) throws TransientObjectException —
+				// cborm ObjectPopulator.getTargetName depends on that exact type to
+				// short-circuit transient detection. H7's SessionImpl.getEntityName goes
+				// through getEntityEntry and throws IllegalArgumentException instead.
+				// Translate so the H5 typed-catch still matches.
+				if ("getEntityName".equals(name)
+						&& paramCount == 1
+						&& cause instanceof IllegalArgumentException) {
+					throw new TransientObjectException(cause.getMessage());
+				}
+				throw cause;
+			}
 		}
 	}
 }

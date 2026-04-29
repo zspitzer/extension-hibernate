@@ -81,7 +81,7 @@ public final class CompatSessionFactoryWrapper {
 				EntityPersister ep = ((SessionFactoryImplementor) delegate)
 						.getMappingMetamodel()
 						.findEntityDescriptor((String) args[0]);
-				return ep;
+				return CompatEntityPersisterWrapper.wrap(ep);
 			}
 			if (paramCount == 1 && "getCollectionMetadata".equals(name) && method.getParameterTypes()[0] == String.class) {
 				String role = (String) args[0];
@@ -101,7 +101,7 @@ public final class CompatSessionFactoryWrapper {
 				if (ep == null) {
 					throw new MappingException("Unknown entity: " + entityName);
 				}
-				return ep;
+				return CompatEntityPersisterWrapper.wrap(ep);
 			}
 
 			// delegate everything else to the real SessionFactory
