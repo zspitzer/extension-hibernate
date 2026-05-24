@@ -248,27 +248,42 @@ public class HibernateUtil {
 	}
 
 	public static boolean isEntity(ORMConfiguration ormConf, Component cfc, String cfcName, String name) {
+		Log dbgLog = CommonUtil.getORMLog();
 		if (!Util.isEmpty(cfcName)) {
-			if (cfc.equalTo(cfcName)) return true;
+			boolean dotEq = cfc.equalTo(cfcName);
+			if ( dbgLog != null ) dbgLog.log( Log.LEVEL_INFO, "hibernate",
+				"[DBG isEntity] cfc.getName=[" + cfc.getName() + "] equalTo(" + cfcName + ")=" + dotEq );
+			if (dotEq) return true;
 
 			if (cfcName.indexOf('.') != -1) {
 				Info info = CFMLEngineFactory.getInstance().getInfo();
 				String[] extensions = HibernateUtil.merge(info.getCFMLComponentExtensions(), info.getLuceeComponentExtensions());
 				String prefix = cfcName.replace('.', '/') + ".";
 				Resource[] locations = ormConf.getCfcLocations();
+				String psRes = cfc.getPageSource() != null && cfc.getPageSource().getResource() != null ? cfc.getPageSource().getResource().getAbsolutePath() : "<null>";
+				if ( dbgLog != null ) dbgLog.log( Log.LEVEL_INFO, "hibernate",
+					"[DBG isEntity] dotted-lookup prefix=[" + prefix + "] cfc.pageSource.resource=[" + psRes + "]" );
 				Resource res;
 				for (int i = 0; i < locations.length; i++) {
 					for (int y = 0; y < extensions.length; y++) {
 						res = locations[i].getRealResource(prefix + extensions[y]);
-						if (res.equals(cfc.getPageSource().getResource())) return true;
+						boolean match = res.equals(cfc.getPageSource().getResource());
+						if ( dbgLog != null ) dbgLog.log( Log.LEVEL_INFO, "hibernate",
+							"[DBG isEntity] check loc[" + i + "]=" + locations[i].getAbsolutePath() + " constructed=" + res.getAbsolutePath() + " match=" + match );
+						if (match) return true;
 					}
 				}
 				return false;
 			}
 		}
 
-		if (cfc.equalTo(name)) return true;
-		return name.equalsIgnoreCase(HibernateCaster.getEntityName(cfc));
+		boolean nameEq = cfc.equalTo(name);
+		String entName = HibernateCaster.getEntityName(cfc);
+		boolean entityEq = name.equalsIgnoreCase(entName);
+		if ( dbgLog != null ) dbgLog.log( Log.LEVEL_INFO, "hibernate",
+			"[DBG isEntity] short-name path: cfc.getName=[" + cfc.getName() + "] equalTo(" + name + ")=" + nameEq + " entityName=[" + entName + "] eq=" + entityEq );
+		if (nameEq) return true;
+		return entityEq;
 	}
 
 	public static String id(String id) {

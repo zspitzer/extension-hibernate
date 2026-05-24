@@ -148,8 +148,11 @@ jobs:
           extensionDir: ${{ github.workspace }}/target
         env:
           testLabels: orm
+          testFilter: cfcLocationRecursion
           testAdditional: ${{ github.workspace }}/tests
           testServices: mysql,mssql,postgres
+          LUCEE_LOGGING_FORCE_APPENDER: console
+          LUCEE_LOGGING_FORCE_LEVEL: info
           MYSQL_SERVER: localhost
           MYSQL_USERNAME: lucee
           MYSQL_PASSWORD: lucee

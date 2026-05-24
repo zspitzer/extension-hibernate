@@ -216,6 +216,10 @@ public class SessionFactoryData {
 		}
 		else cfcName = null;
 
+		Log dbgLog = CommonUtil.getORMLog();
+		if ( dbgLog != null ) dbgLog.log( Log.LEVEL_INFO, "hibernate",
+			"[DBG getEntityByCFCName] input cfcName=[" + cfcName + "] name=[" + name + "]" );
+
 		Component cfc;
 		List<String> names = new ArrayList<String>();
 
@@ -234,9 +238,15 @@ public class SessionFactoryData {
 			Map<String, CFCInfo> _cfcs;
 			while (it.hasNext()) {
 				_cfcs = it.next();
+				if ( dbgLog != null ) dbgLog.log( Log.LEVEL_INFO, "hibernate",
+					"[DBG getEntityByCFCName] innerMap keys=" + _cfcs.keySet() );
 				Iterator<CFCInfo> _it = _cfcs.values().iterator();
 				while (_it.hasNext()) {
 					cfc = _it.next().getCFC();
+					boolean eq = cfc.equalTo(cfcName == null ? name : cfcName);
+					String psPath = cfc.getPageSource() != null ? cfc.getPageSource().getDisplayPath() : "<null>";
+					if ( dbgLog != null ) dbgLog.log( Log.LEVEL_INFO, "hibernate",
+						"[DBG getEntityByCFCName] iter cfc.getName=[" + cfc.getName() + "] equalTo(" + (cfcName == null ? name : cfcName) + ")=" + eq + " pageSource=[" + psPath + "]" );
 					names.add(cfc.getName());
 					if (HibernateUtil.isEntity(ormConf, cfc, cfcName, name)) // if(cfc.instanceOf(name))
 						return unique ? (Component) cfc.duplicate(false) : cfc;
@@ -245,6 +255,8 @@ public class SessionFactoryData {
 		}
 
 		CFCInfo info = getCFC(name, null);
+		if ( dbgLog != null ) dbgLog.log( Log.LEVEL_INFO, "hibernate",
+			"[DBG getEntityByCFCName] getCFC(" + name + ")=" + (info == null ? "null" : "FOUND") );
 		if (info != null) {
 			cfc = info.getCFC();
 			return unique ? (Component) cfc.duplicate(false) : cfc;
